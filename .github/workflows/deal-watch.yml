@@ -1,0 +1,72 @@
+name: 手机好价监控
+
+on:
+  schedule:
+    # 每 5 分钟一轮（GitHub 定时任务的最短间隔）。
+    # 本仓库为公开仓库，Actions 分钟数不计费，可以放心高频。
+    # 单次运行约 1 分钟，5 分钟一轮 = 288 次/天，足以第一时间抓到闪降。
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "只打印不推送（调试用）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # 回写好价节流状态 data/phone_deal_state.json
+
+# 同一时间只跑一轮，避免两轮并发写状态文件冲突
+concurrency:
+  group: deal-watch-git
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖
+        run: pip install -q requests
+
+      - name: 检查好价并推送
+        env:
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "== DRY RUN =="
+            python scripts/phone_deal.py --dry-run
+          else
+            python scripts/phone_deal.py
+          fi
+
+      - name: 保存节流状态
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/phone_deal_state.json
+          if git diff --cached --quiet; then
+            echo "no state changes"
+            exit 0
+          fi
+          git commit -m "chore(deal): 更新好价节流状态 [skip ci]"
+          # 定时任务密集，远端可能被上一轮占用，rebase 重试几次
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push; then
+              exit 0
+            fi
+            sleep 5
+          done
+          # 状态没写回去不影响本轮推送结果，不让整轮标红
+          echo "::warning::状态回写失败，下一轮会重新记账"
+          exit 0
