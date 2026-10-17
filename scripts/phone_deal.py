@@ -536,12 +536,26 @@ def load_state() -> dict:
 
 
 def save_state(entries: dict) -> None:
+    """写回状态。
+
+    5 分钟一轮的高频巡检里，绝大多数轮次不会有任何状态变化。若每轮都写文件，
+    workflow 就会每轮提交一次 commit（一天 288 次），把仓库历史刷成一片噪音。
+    所以先跟磁盘上的内容比对，真的变了才落盘。
+    """
     # 修剪：超期 + 超量
     cutoff = (now_cn() - timedelta(days=STATE_MAX_AGE_DAYS)).isoformat(timespec="seconds")
     kept = {k: v for k, v in entries.items() if v.get("last", "") >= cutoff}
     if len(kept) > STATE_KEEP:
         for k in sorted(kept, key=lambda x: kept[x].get("last", ""))[: len(kept) - STATE_KEEP]:
             del kept[k]
+
+    try:
+        old = json.loads(STATE_PATH.read_text(encoding="utf-8")).get("entries")
+    except (OSError, ValueError):
+        old = None
+    if old == kept:
+        return   # 无实质变化，不落盘（workflow 会看到 no state changes 并跳过 commit）
+
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(
         json.dumps({"entries": kept, "updated": now_cn().isoformat(timespec="seconds")},
