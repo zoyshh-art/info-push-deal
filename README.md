@@ -39,8 +39,14 @@
 推送渠道默认 `clawbot`（微信 ClawBot）。如需服务号渠道，在工作流里加环境变量
 `PUSHPLUS_CHANNELS: "wechat,clawbot"`。
 
-工作流 `.github/workflows/deal-watch.yml` 每 5 分钟自动跑一轮，也可以在
+工作流 `.github/workflows/deal-watch.yml` 每 5 分钟尝试跑一轮，也可以在
 **Actions → 手机好价监控 → Run workflow** 手动触发，勾选 `dry_run` 只打印不推送。
+
+> GitHub 的定时任务本身有 5-15 分钟抖动（官方明确说明会延迟，新仓库首小时还有预热期），
+> 所以实际间隔可能比 5 分钟长一些。这是平台特性，不影响推送逻辑。
+>
+> 高频轮询下，绝大多数轮次没有任何状态变化。脚本会在落盘前比对内容，**没有实际变化就不写文件**，
+> 工作流看到 `no state changes` 会直接跳过 commit——否则一天 288 轮会刷出 288 个空 commit。
 
 ## 本地运行
 
