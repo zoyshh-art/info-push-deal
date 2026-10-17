@@ -2,21 +2,31 @@ name: 手机好价监控
 
 on:
   schedule:
-    # 每 5 分钟一轮（GitHub 定时任务的最短间隔）。
-    # 本仓库为公开仓库，Actions 分钟数不计费，可以放心高频。
-    # 单次运行约 1 分钟，5 分钟一轮 = 288 次/天，足以第一时间抓到闪降。
-    - cron: "*/5 * * * *"
+    # 每小时触发一次，job 内部自己循环 12 轮 × 5 分钟 = 60 分钟，几乎无缝衔接。
+    #
+    # 为什么不用 "*/5 * * * *"：
+    # 实测（2026-10-17 建仓当晚）GitHub 对高频 cron 会降级调度 —— 配置写 5 分钟，
+    # 实际只跑了 30 分钟一次，中间 20 分钟完全没有运行。而 "0 * * * *" 这种每小时
+    # 一次的频率，GitHub 调度是可靠的（老仓库的 */30 实测误差仅 2 分钟）。
+    # 所以把「5 分钟粒度」放进 job 内部实现，不再依赖 GitHub 的定时精度。
+    # 公开仓库 Actions 分钟数不计费，长 job 没有成本。
+    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:
         description: "只打印不推送（调试用）"
         type: boolean
         default: false
+      loops:
+        description: "巡检轮数（默认 12 轮 = 60 分钟，调试可填 1）"
+        type: number
+        default: 12
 
 permissions:
   contents: write   # 回写好价节流状态 data/phone_deal_state.json
 
-# 同一时间只跑一轮，避免两轮并发写状态文件冲突
+# 同一时间只跑一轮。上一轮还没结束就触发下一轮时，新的会在队列里等它跑完接上，
+# 这样实际盯价是连续覆盖的，不会出现空档。
 concurrency:
   group: deal-watch-git
   cancel-in-progress: false
@@ -24,7 +34,7 @@ concurrency:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 80
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -37,36 +47,44 @@ jobs:
       - name: 安装依赖
         run: pip install -q requests
 
-      - name: 检查好价并推送
+      - name: 循环巡检（每 5 分钟一轮）
         env:
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
+          LOOPS: ${{ inputs.loops }}
         run: |
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "== DRY RUN =="
-            python scripts/phone_deal.py --dry-run
-          else
-            python scripts/phone_deal.py
-          fi
+          # schedule 触发时 inputs 为空，用默认值
+          LOOPS="${LOOPS:-12}"
 
-      - name: 保存节流状态
-        if: success()
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/phone_deal_state.json
-          if git diff --cached --quiet; then
-            echo "no state changes"
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "== DRY RUN（只跑 1 轮，不推送、不提交）=="
+            python scripts/phone_deal.py --dry-run
             exit 0
           fi
-          git commit -m "chore(deal): 更新好价节流状态 [skip ci]"
-          # 定时任务密集，远端可能被上一轮占用，rebase 重试几次
-          for i in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push; then
-              exit 0
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for i in $(seq 1 "$LOOPS"); do
+            echo "::group::第 $i/$LOOPS 轮 $(date -u '+%H:%M:%S') UTC"
+            python scripts/phone_deal.py || echo "::warning::第 $i 轮脚本异常，继续下一轮"
+            echo "::endgroup::"
+
+            # 每轮结束就把状态提交掉：万一这个长 job 中途被取消，已推送的记录不会丢，
+            # 下一轮不会把同一条好价再推一次。没有变化时 save_state 不落盘，这里就跳过。
+            git add data/phone_deal_state.json
+            if git diff --cached --quiet; then
+              echo "no state changes"
+            else
+              git commit -m "chore(deal): 更新好价节流状态 [skip ci]"
+              if ! git push origin main; then
+                sleep 5
+                git pull --rebase origin main || git rebase --abort
+                git push origin main || echo "::warning::状态回写失败，下一轮重新记账"
+              fi
             fi
-            sleep 5
+
+            if [ "$i" -lt "$LOOPS" ]; then
+              sleep 300
+            fi
           done
-          # 状态没写回去不影响本轮推送结果，不让整轮标红
-          echo "::warning::状态回写失败，下一轮会重新记账"
-          exit 0
