@@ -162,6 +162,8 @@ OPPO_OFFICIAL_SKUS = {
 
 # ── 好价阈值：低于发行价 28% 才算好价 ──
 GOOD_DEAL_DISCOUNT = 0.28        # 好价判定：售价 ≤ 发行价 ×(1-28%)
+# 异常下限：手机不可能打到发行价 4.5 折，低于此值基本是券额/配件/定金被误当整机价
+MIN_PRICE_RATIO = 0.45
 
 # ── 发行价表（发布会首发官方价，配置 → 价格） ──
 RRP_TABLE = {
@@ -231,6 +233,24 @@ def config_key(text: str) -> str:
     return f"{ram}+{rom}"
 
 
+def price_note(raw: str, title: str = "") -> str:
+    """从价格原文/标题提取价格成立条件，如 券后 / 含国补 / 含PLUS。
+    这些条件不写清楚，用户点进去看到的就是原价，会以为价格是假的。"""
+    text = f"{raw} {title}"
+    notes = []
+    if "用券" in text:
+        notes.append("券后")
+    if "国家补贴" in text or "国补" in text:
+        notes.append("含国补")
+    if "plus" in text.lower():
+        notes.append("含PLUS")
+    if "会员" in text:
+        notes.append("会员价")
+    if "以旧换新" in text or "换新" in text:
+        notes.append("含以旧换新")
+    return "·".join(notes)
+
+
 def is_good_deal(item: dict) -> tuple[bool, str]:
     """好价判断：售价 ≤ 发行价×(1-28%) 才算好价。返回 (通过?, 说明)"""
     title = item["title"]
@@ -250,6 +270,9 @@ def is_good_deal(item: dict) -> tuple[bool, str]:
     rrp = table.get(cfg)
     if rrp is None:
         rrp = min(table.values())            # 配置未知 → 按该机型最低发行价从严判断
+    # 下限：手机不可能打到发行价 4.5 折，低于此值基本是优惠券金额/配件/定金被误当整机价
+    if price < rrp * MIN_PRICE_RATIO:
+        return False, f"¥{price:.0f} 仅发行价¥{rrp} 的 {price / rrp:.0%}，疑似异常数据"
     limit = rrp * (1 - GOOD_DEAL_DISCOUNT)
     return price <= limit, f"¥{price:.0f}/发行价¥{rrp}，门槛¥{limit:.0f}"
 
@@ -321,6 +344,8 @@ def fetch_oppo_official() -> list[dict]:
             "url": f"https://www.opposhop.cn/cn/m/product/index?skuId={sid}",
             "title": f"OPPO官方 · {detail}",
             "price": price,
+            "price_note": "",          # 官方直售价，无券无补贴
+            "mall": "OPPO官方商城",
             "src": "oppo", "kind": "deal",
             "key": f"off|{sid}|{price}",
             "model": f"off{sid}",
@@ -345,6 +370,8 @@ def fetch_smzdm_top() -> list[dict]:
             pid, title, subtitle, price_raw = m.groups()
             title = re.sub(r"\s+", " ", title.replace("\\u002F", "/")).strip()
             subtitle = subtitle.replace("\\u002F", "/")
+            if "过期" in subtitle:      # 已过期爆料不推
+                continue
             if price_raw.startswith('"'):
                 price = price_raw.strip('"')
             else:   # 变量引用 → 从展示价 “xxx元” 提取
@@ -361,6 +388,8 @@ def fetch_smzdm_top() -> list[dict]:
             items[pid] = {
                 "url": f"https://www.smzdm.com/p/{pid}/",
                 "title": title, "price": price,
+                "price_note": price_note(subtitle, title),
+                "mall": "",
                 "src": "smzdm_top", "kind": "deal",
                 "key": f"{mk}|{price}",
                 "model": mk,
@@ -398,13 +427,18 @@ def _api_rows_to_items(rows: list[dict], src: str) -> dict[str, dict]:
         mm = model_hit(title)
         if not mm:
             continue
-        # article_price 形如 "3920元（需用券）" → 取首个数字；0/极小值视为无价
-        pm = re.search(r"\d+(?:\.\d+)?", str(it.get("article_price") or ""))
+        # article_price 形如 "3920元（需用券）" / "过期 | 7154.11元"
+        raw = str(it.get("article_price") or "").strip()
+        if "过期" in raw:          # 过期爆料点进去已经买不到这个价，直接丢弃
+            continue
+        pm = re.search(r"\d+(?:\.\d+)?", raw)
         price = pm.group(0) if pm and float(pm.group(0)) >= 100 else ""
         mk = model_key(mm.group(0))
         url = f"https://www.smzdm.com/p/{pid}/"
         items[pid] = {
             "url": url, "title": title, "price": price,
+            "price_note": price_note(raw, title),
+            "mall": str(it.get("article_mall") or ""),
             "src": src, "kind": "deal",
             "key": f"{mk}|{price}" if price else f"{mk}|{url}",
             "model": mk,
@@ -467,6 +501,8 @@ def fetch_zol() -> list[dict]:
             mk = model_key(mm.group(0))
             items[pid] = {
                 "url": item_url, "title": title, "price": price,
+                "price_note": "参考价",     # ZOL 给的是媒体参考价，不是电商实际售价
+                "mall": "中关村在线",
                 "src": "zol", "kind": "deal",
                 "key": f"{mk}|{price}",
                 "model": mk,
@@ -590,28 +626,35 @@ def gate(items: list[dict], entries: dict) -> list[dict]:
 # ──────────────────────── 消息组装与推送 ────────────────────────
 
 def build_text(deals: list[dict], news: list[dict], batch_info: str = "") -> str:
+    """生成 markdown 正文。用 markdown 而不是纯文本，是因为纯文本里的 URL
+    在微信里点不动；markdown 的 [文字](链接) 才是可点击的。"""
     now = now_cn().strftime("%m-%d %H:%M")
     total = len(deals) + len(news)
-    lines = [
-        "━━━━━━━━━━━━━━━━━━",
-        f"📱 机型好价速报 · {now} · 新 {total} 条{batch_info}",
-        "━━━━━━━━━━━━━━━━━━",
-    ]
+    lines = [f"**📱 机型好价速报 · {now} · 新 {total} 条{batch_info}**", ""]
     if deals:
-        lines += ["", f"━━ 好价爆料 · {len(deals)} 条 ━━"]
+        lines += [f"**━━ 好价爆料 · {len(deals)} 条 ━━**", ""]
         for i, d in enumerate(deals[:MAX_PUSH], 1):
-            head = f"▸ {i}. {d['title']}"
+            lines.append(f"**{i}. {d['title']}**")
+            meta = []
             if d["price"]:
-                head += f"　¥{d['price']}"
-            lines += [head, f"　　{d['url']}", ""]
+                p = f"¥{d['price']}"
+                note = d.get("price_note") or ""
+                if note:
+                    p += f"（{note}）"
+                meta.append(p)
+            if d.get("mall"):
+                meta.append(d["mall"])
+            meta.append(f"[查看爆料]({d['url']})")
+            lines += ["　".join(meta), ""]
     if news:
-        lines += ["", f"━━ 促销资讯 · {len(news)} 条 ━━"]
+        lines += [f"**━━ 促销资讯 · {len(news)} 条 ━━**", ""]
         for i, n in enumerate(news, 1):
-            lines += [f"▸ {i}. {n['title']}", f"　　{n['url']}", ""]
+            lines += [f"**{i}. {n['title']}**", f"[查看详情]({n['url']})", ""]
     lines += [
-        "━━━━━━━━━━━━━━━━━━",
+        "---",
         "监测：Find X9/X10 · vivo X300/X500 全系列 + OPPO官方直降盯价",
-        "好价=低于发行价28% · 同款同价最多3次间隔30分钟 · 全天候巡检",
+        "好价=低于发行价28% · 券后/国补价已标注，最终以下单页为准",
+        "同款同价最多3次、间隔30分钟 · 全天候巡检",
     ]
     return "\n".join(lines)
 
@@ -629,7 +672,7 @@ def push(token: str, title: str, content: str) -> None:
             r = requests.post(
                 PUSH_URL,
                 json={"token": token, "title": title, "content": content,
-                      "template": "txt", "channel": ch},
+                      "template": "markdown", "channel": ch},
                 timeout=30,
             )
             r.raise_for_status()
