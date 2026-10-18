@@ -18,9 +18,9 @@ on:
         type: boolean
         default: false
       loops:
-        description: "巡检轮数（默认 12 轮 = 60 分钟，调试可填 1）"
+        description: "巡检轮数（默认 10 轮 ≈ 50 分钟，调试可填 1）"
         type: number
-        default: 12
+        default: 10
 
 permissions:
   contents: write   # 回写好价节流状态 data/phone_deal_state.json
@@ -54,7 +54,7 @@ jobs:
           LOOPS: ${{ inputs.loops }}
         run: |
           # schedule 触发时 inputs 为空，用默认值
-          LOOPS="${LOOPS:-12}"
+          LOOPS="${LOOPS:-10}"
 
           if [ "$DRY_RUN" = "true" ]; then
             echo "== DRY RUN（只跑 1 轮，不推送、不提交）=="
@@ -66,6 +66,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           for i in $(seq 1 "$LOOPS"); do
+            ROUND_START=$(date +%s)
             echo "::group::第 $i/$LOOPS 轮 $(date -u '+%H:%M:%S') UTC"
             python scripts/phone_deal.py || echo "::warning::第 $i 轮脚本异常，继续下一轮"
             echo "::endgroup::"
@@ -84,7 +85,15 @@ jobs:
               fi
             fi
 
+            # 按「本轮起点」对齐到 5 分钟整，抓取耗时不会让间隔漂移
             if [ "$i" -lt "$LOOPS" ]; then
-              sleep 300
+              ELAPSED=$(( $(date +%s) - ROUND_START ))
+              WAIT=$(( 300 - ELAPSED ))
+              if [ "$WAIT" -gt 0 ]; then
+                echo "本轮耗时 ${ELAPSED}s，等待 ${WAIT}s 后开始下一轮"
+                sleep "$WAIT"
+              else
+                echo "::warning::本轮耗时 ${ELAPSED}s 已超过 5 分钟，立即开始下一轮"
+              fi
             fi
           done
