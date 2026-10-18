@@ -65,7 +65,7 @@ MAX_PUSH = 10                 # 单条消息最多条目数（超出自动拆成
 MAX_MSGS_PER_RUN = 4          # 单轮最多推送消息数（分批发完，余量下轮续推）
 MSG_GAP_SEC = 5               # 分批消息间隔秒（PushPlus 微信渠道限 1 分钟 5 次）
 MAX_SAME_PUSH = 3             # 同一「型号+价格」最多推送次数
-SAME_PUSH_GAP_MIN = 30        # 同款两次推送最小间隔（分钟）
+SAME_PUSH_GAP_MIN = 15        # 同款同价两次提醒的最小间隔（分钟）；价格一变立刻推
 STATE_KEEP = 800              # 状态保留条数
 STATE_MAX_AGE_DAYS = 60       # 状态保留天数
 STATE_PATH = Path(__file__).resolve().parent.parent / "data" / "phone_deal_state.json"
@@ -654,7 +654,7 @@ def build_text(deals: list[dict], news: list[dict], batch_info: str = "") -> str
         "---",
         "监测：Find X9/X10 · vivo X300/X500 全系列 + OPPO官方直降盯价",
         "好价=低于发行价28% · 券后/国补价已标注，最终以下单页为准",
-        "同款同价最多3次、间隔30分钟 · 全天候巡检",
+        "2 分钟一轮巡检 · 价格一变立即推 · 同款同价 15 分钟内不重复",
     ]
     return "\n".join(lines)
 
