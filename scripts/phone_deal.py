@@ -617,12 +617,11 @@ def build_text(deals: list[dict], news: list[dict], batch_info: str = "") -> str
 
 
 def push(token: str, title: str, content: str) -> None:
-    """按渠道逐个发送。好价默认只走 clawbot（微信ClawBot），不发微信服务号；
-    若配置的渠道全部失败，自动回退微信服务号（wechat）保证消息不丢。
-    临时改渠道用环境变量 PUSHPLUS_CHANNELS（如 "wechat,clawbot"）。
-    逐渠道独立成败，某渠道未绑定不影响其它渠道。"""
+    """按渠道逐个发送。默认走微信服务号（wechat），这是已验证能收到消息的渠道；
+    若微信服务号失败，再回退 ClawBot。临时改渠道用环境变量 PUSHPLUS_CHANNELS
+    （如 "wechat,clawbot"）。逐渠道独立成败，某渠道未绑定不影响其它渠道。"""
     channels = [c.strip()
-                for c in os.environ.get("PUSHPLUS_CHANNELS", "clawbot").split(",")
+                for c in os.environ.get("PUSHPLUS_CHANNELS", "wechat").split(",")
                 if c.strip()]
 
     def send(ch: str) -> tuple:
@@ -642,15 +641,15 @@ def push(token: str, title: str, content: str) -> None:
             return (ch, False, f"{type(e).__name__}: {e}")
 
     results = [send(ch) for ch in channels]
-    # 回退：配置渠道全部失败且未显式包含服务号 → 自动补发服务号
-    # 回退不记状态，仅对本条生效：下一条仍从 ClawBot 开始尝试
-    if not any(ok for _, ok, _ in results) and "wechat" not in channels:
-        log("配置渠道全部失败，回退微信服务号（仅本条；下一条仍优先 ClawBot）")
-        results.append(send("wechat"))
+    # 回退：配置渠道全部失败且未显式包含 ClawBot → 自动补发 ClawBot
+    # 回退不记状态，仅对本条生效：下一条仍从微信服务号开始尝试
+    if not any(ok for _, ok, _ in results) and "clawbot" not in channels:
+        log("微信服务号失败，回退 ClawBot（仅本条；下一条仍优先服务号）")
+        results.append(send("clawbot"))
     for ch, ok, detail in results:
         log(f"推送[{ch}] {'成功' if ok else '失败'} {detail}")
     if not any(ok for _, ok, _ in results):
-        raise RuntimeError("所有渠道推送失败（含服务号回退）: " + str(results))
+        raise RuntimeError("所有渠道推送失败（含 ClawBot 回退）: " + str(results))
 
 
 def dedup_news(news: list[dict]) -> list[dict]:
