@@ -2,13 +2,13 @@ name: 手机好价监控
 
 on:
   schedule:
-    # 每小时触发一次，job 内部自己循环 12 轮 × 5 分钟 = 60 分钟，几乎无缝衔接。
+    # 每小时触发一次，job 内部自己循环 25 轮 × 2 分钟 ≈ 50 分钟，留 10 分钟缓冲。
     #
     # 为什么不用 "*/5 * * * *"：
     # 实测（2026-10-17 建仓当晚）GitHub 对高频 cron 会降级调度 —— 配置写 5 分钟，
     # 实际只跑了 30 分钟一次，中间 20 分钟完全没有运行。而 "0 * * * *" 这种每小时
     # 一次的频率，GitHub 调度是可靠的（老仓库的 */30 实测误差仅 2 分钟）。
-    # 所以把「5 分钟粒度」放进 job 内部实现，不再依赖 GitHub 的定时精度。
+    # 所以把「2 分钟粒度」放进 job 内部实现，不再依赖 GitHub 的定时精度。
     # 公开仓库 Actions 分钟数不计费，长 job 没有成本。
     - cron: "0 * * * *"
   workflow_dispatch:
@@ -18,9 +18,9 @@ on:
         type: boolean
         default: false
       loops:
-        description: "巡检轮数（默认 10 轮 ≈ 50 分钟，调试可填 1）"
+        description: "巡检轮数（默认 25 轮 × 2 分钟 ≈ 50 分钟，调试可填 1）"
         type: number
-        default: 10
+        default: 25
 
 permissions:
   contents: write   # 回写好价节流状态 data/phone_deal_state.json
@@ -47,14 +47,14 @@ jobs:
       - name: 安装依赖
         run: pip install -q requests
 
-      - name: 循环巡检（每 5 分钟一轮）
+      - name: 循环巡检（每 2 分钟一轮）
         env:
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
           LOOPS: ${{ inputs.loops }}
         run: |
           # schedule 触发时 inputs 为空，用默认值
-          LOOPS="${LOOPS:-10}"
+          LOOPS="${LOOPS:-25}"
 
           if [ "$DRY_RUN" = "true" ]; then
             echo "== DRY RUN（只跑 1 轮，不推送、不提交）=="
@@ -85,15 +85,15 @@ jobs:
               fi
             fi
 
-            # 按「本轮起点」对齐到 5 分钟整，抓取耗时不会让间隔漂移
+            # 按「本轮起点」对齐到 2 分钟整，抓取耗时不会让间隔漂移
             if [ "$i" -lt "$LOOPS" ]; then
               ELAPSED=$(( $(date +%s) - ROUND_START ))
-              WAIT=$(( 300 - ELAPSED ))
+              WAIT=$(( 120 - ELAPSED ))
               if [ "$WAIT" -gt 0 ]; then
                 echo "本轮耗时 ${ELAPSED}s，等待 ${WAIT}s 后开始下一轮"
                 sleep "$WAIT"
               else
-                echo "::warning::本轮耗时 ${ELAPSED}s 已超过 5 分钟，立即开始下一轮"
+                echo "::warning::本轮耗时 ${ELAPSED}s 已超过 2 分钟，立即开始下一轮"
               fi
             fi
           done
