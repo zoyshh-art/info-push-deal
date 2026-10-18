@@ -11,8 +11,8 @@
 推送规则：
 - 好价判断：售价须低于官方【发行价】28% 以上才算好价（RRP_TABLE 发行价表），
   达不到直接静默淘汰——官方发行价原价冒充的"好价"一律不推
-- 同一「型号 + 价格」的消息最多推送 3 次，两次间隔至少 30 分钟
-  （同款反复被爆料时：首见即推，30 分钟后若还在则第 2 次，60 分钟后第 3 次，之后不再推）
+- 同一「型号 + 价格」的消息最多推送 3 次，两次间隔至少 15 分钟
+  （同款反复被爆料时：首见即推，15 分钟后若还在则第 2 次，30 分钟后第 3 次，之后不再推）
 - 单条消息最多 10 条，超出自动拆成多条消息依次推送（间隔 5 秒、单轮最多 4 条）；
   单轮发不完的自动留到下一轮巡检续推——全部推到微信，不需要去别处查看
 - 降价产生新价格 = 新消息，正常推送
@@ -42,7 +42,7 @@ import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 
-CN_TZ = timezone(timedelta(hours=8))  # 状态/展示统一北京时间：Actions 跑在 UTC、本地在北京，混写会打乱 30 分钟轮转
+CN_TZ = timezone(timedelta(hours=8))  # 状态/展示统一北京时间：Actions 跑在 UTC、本地在北京，混写会打乱 15 分钟轮转
 
 
 def now_cn() -> datetime:
@@ -558,7 +558,7 @@ def fetch_mydrivers() -> list[dict]:
     return out
 
 
-# ──────────────── 状态：同价 3 次 / 间隔 30 分钟 ────────────────
+# ──────────────── 状态：同价 3 次 / 间隔 15 分钟 ────────────────
 
 def load_state() -> dict:
     """返回 {key: {"count": n, "last": iso}}；旧格式/损坏视为首次运行"""
@@ -784,7 +784,7 @@ def main() -> int:
         news = [x for x in fresh if x["kind"] == "news"]
 
     if not deals and not news:
-        log("无新条目（或同款未到 30 分钟间隔）")
+        log(f"无新条目（或同款同价 {SAME_PUSH_GAP_MIN} 分钟内已提醒过）")
         save_state(entries)   # 记录间隔时钟
         return 0
 
