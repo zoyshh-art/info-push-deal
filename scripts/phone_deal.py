@@ -370,7 +370,7 @@ def fetch_smzdm_top() -> list[dict]:
             pid, title, subtitle, price_raw = m.groups()
             title = re.sub(r"\s+", " ", title.replace("\\u002F", "/")).strip()
             subtitle = subtitle.replace("\\u002F", "/")
-            if "过期" in subtitle:      # 已过期爆料不推
+            if any(k in subtitle for k in ("过期", "已结束", "售罄")):      # 已失效爆料不推
                 continue
             if price_raw.startswith('"'):
                 price = price_raw.strip('"')
@@ -429,7 +429,7 @@ def _api_rows_to_items(rows: list[dict], src: str) -> dict[str, dict]:
             continue
         # article_price 形如 "3920元（需用券）" / "过期 | 7154.11元"
         raw = str(it.get("article_price") or "").strip()
-        if "过期" in raw:          # 过期爆料点进去已经买不到这个价，直接丢弃
+        if any(k in raw for k in ("过期", "已结束", "售罄")):   # 失效爆料点进去买不到这个价
             continue
         pm = re.search(r"\d+(?:\.\d+)?", raw)
         price = pm.group(0) if pm and float(pm.group(0)) >= 100 else ""
