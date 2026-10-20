@@ -2,14 +2,14 @@
 """手机好价监控：指定机型优惠 → PushPlus（微信ClawBot，不发服务号）
 
 监测范围（型号白名单）：
-- OPPO Find X9 系列：Find X9 / X9 Pro / X9s Pro / X9 Ultra
+- OPPO Find X9 系列：X9 Pro / X9s Pro / X9 Ultra（基础款 Find X9 已停跟）
 - OPPO Find X10 系列：Find X10 / X10 Pro Max / X10 E / (未来 Ultra)
-- vivo X300 系列：X300 / X300 Pro / X300s / X300 Ultra / X300 E
+- vivo X300 系列：X300 Pro / X300 Ultra（X300 / X300s / X300E 已停跟）
 - vivo X500 系列：X500 / X500 Pro / X500 Pro Max
-（前缀匹配，未来新增后缀自动覆盖）
+（前缀匹配，未来新增后缀自动覆盖；EXCLUDED_MODELS 里的基础款除外）
 
 推送规则：
-- 好价判断：售价须低于官方【发行价】28% 以上才算好价（RRP_TABLE 发行价表），
+- 好价判断：售价须低于官方【发行价】30% 以上才算好价（RRP_TABLE 发行价表），
   达不到直接静默淘汰——官方发行价原价冒充的"好价"一律不推
 - 同一「型号 + 价格」的消息最多推送 3 次，两次间隔至少 15 分钟
   （同款反复被爆料时：首见即推，15 分钟后若还在则第 2 次，30 分钟后第 3 次，之后不再推）
@@ -84,6 +84,10 @@ MODEL_RE = re.compile(
     re.I,
 )
 
+# ── 已停止监控的具体机型（精确到型号，不影响同系列 Pro/Ultra 等） ──
+# 2026-10-20 按用户要求下线：Find X9 基础款、vivo X300 / X300s / X300E
+EXCLUDED_MODELS = {"x9", "x300", "x300s", "x300e"}
+
 # 配件标题一律不进推送（“Find X9 充电器”这类误配）
 ACC_RE = re.compile(
     r"充电器|数据线|充电线|手机壳|保护壳|钢化膜|贴膜|耳机|适配器|背夹|"
@@ -92,10 +96,15 @@ ACC_RE = re.compile(
 
 
 def model_hit(title: str):
-    """机型匹配（排除配件标题），返回 Match | None"""
+    """机型匹配（排除配件标题与已停跟机型），返回 Match | None"""
     if ACC_RE.search(title):
         return None
-    return MODEL_RE.search(title)
+    m = MODEL_RE.search(title)
+    if not m:
+        return None
+    if full_model_id(title) in EXCLUDED_MODELS:
+        return None
+    return m
 
 # IT之家资讯需同时命中的促销词
 DEAL_WORD_RE = re.compile(
@@ -151,7 +160,6 @@ MYDRIVERS_URL = "https://news.mydrivers.com/"
 # 源三：OPPO 官方商城（opposhop.cn）目标机型商品页 —— 官方直降第一手
 # 价格字段 buyPrice（页内内联 JS），价格一变即视为新消息
 OPPO_OFFICIAL_SKUS = {
-    "36848": "OPPO Find X9",
     "36878": "OPPO Find X9 Pro",
     "39805": "OPPO Find X9s Pro",
     "39829": "OPPO Find X9 Ultra",
@@ -160,8 +168,8 @@ OPPO_OFFICIAL_SKUS = {
     "45222": "OPPO Find X10 E",
 }
 
-# ── 好价阈值：低于发行价 28% 才算好价 ──
-GOOD_DEAL_DISCOUNT = 0.28        # 好价判定：售价 ≤ 发行价 ×(1-28%)
+# ── 好价阈值：低于发行价 30% 才算好价 ──
+GOOD_DEAL_DISCOUNT = 0.30        # 好价判定：售价 ≤ 发行价 ×(1-30%)
 # 异常下限：手机不可能打到发行价 4.5 折，低于此值基本是券额/配件/定金被误当整机价
 MIN_PRICE_RATIO = 0.45
 
@@ -252,7 +260,7 @@ def price_note(raw: str, title: str = "") -> str:
 
 
 def is_good_deal(item: dict) -> tuple[bool, str]:
-    """好价判断：售价 ≤ 发行价×(1-28%) 才算好价。返回 (通过?, 说明)"""
+    """好价判断：售价 ≤ 发行价×(1-30%) 才算好价。返回 (通过?, 说明)"""
     title = item["title"]
     try:
         price = float(item["price"])
@@ -652,8 +660,8 @@ def build_text(deals: list[dict], news: list[dict], batch_info: str = "") -> str
             lines += [f"**{i}. {n['title']}**", f"[查看详情]({n['url']})", ""]
     lines += [
         "---",
-        "监测：Find X9/X10 · vivo X300/X500 全系列 + OPPO官方直降盯价",
-        "好价=低于发行价28% · 券后/国补价已标注，最终以下单页为准",
+        "监测：Find X9 Pro/X9s Pro/X9 Ultra · Find X10 系列 · vivo X300 Pro/X300 Ultra/X500 系列",
+        "好价=低于发行价30% · 券后/国补价已标注，最终以下单页为准",
         "2 分钟一轮巡检 · 价格一变立即推 · 同款同价 15 分钟内不重复",
     ]
     return "\n".join(lines)
@@ -740,7 +748,7 @@ def main() -> int:
     if len(news) > 1:
         news = dedup_news(news)
 
-    # ── 好价判断：低于发行价 28% 才保留，达不到静默淘汰 ──
+    # ── 好价判断：低于发行价 30% 才保留，达不到静默淘汰 ──
     if deals:
         kept = []
         for d in deals:
@@ -750,7 +758,7 @@ def main() -> int:
             else:
                 log(f"[好价过滤] 淘汰 {why} | {d['title'][:44]}")
         if len(kept) != len(deals):
-            log(f"[好价过滤] {len(kept)}/{len(deals)} 条达标（低于发行价 28%）")
+            log(f"[好价过滤] {len(kept)}/{len(deals)} 条达标（低于发行价 30%）")
         deals = kept
 
     if not deals and not news:
@@ -815,7 +823,7 @@ def main() -> int:
         d = [x for x in batch if x["kind"] == "deal"]
         n = [x for x in batch if x["kind"] == "news"]
         bi = f" · 批 {idx}/{len(batches)}" if len(batches) > 1 else ""
-        title = f"📱【好价】比发行价低 28%+ · 新 {len(batch)} 条{bi}"
+        title = f"📱【好价】比发行价低 30%+ · 新 {len(batch)} 条{bi}"
         try:
             push(token, title, build_text(d, n, bi))
             sent += 1
