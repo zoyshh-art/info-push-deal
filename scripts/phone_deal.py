@@ -106,6 +106,40 @@ def model_hit(title: str):
         return None
     return m
 
+# ── 打印机监控（2026-10-24 新增）──
+# 与手机不同：打印机按「绝对到手价区间」判定，不看发行价折扣
+# 用户指定：兄弟 DCP-T435W 400–550 元；爱普生 L335x（L3350–L3359 全系）400–620 元
+PRINTER_TARGETS = {
+    "brother_t435w": {"name": "兄弟 DCP-T435W", "lo": 400, "hi": 550},
+    "epson_l335x":   {"name": "爱普生 L335x",   "lo": 400, "hi": 620},
+}
+# 三个关键词即可覆盖：DCP-T435W 精确命中兄弟；L3351/L3353 各自返回 60+ 条
+# 实测 L3355/L3356 新增很少（且多为 004 墨水），故不加，省请求量
+PRINTER_KEYWORDS = ["DCP-T435W", "L3351", "L3353"]
+# 耗材/配件标题不进推送（格之格、天威这类墨水标题会带上机型名）
+PRINTER_ACC_RE = re.compile(
+    r"墨水|墨瓶|墨盒|维护箱|废墨|相纸|打印纸|硒鼓|粉盒|碳粉|"
+    r"数据线|电源线|标签纸|兼容|适用|格之格|天威|才进|彩格"
+)
+# 上一代 L32xx 混排标题：如「L3353/L3355 3351 3251 3253」这种一号多机的标题，
+# 低价往往对应 3251/3253，落到我们区间里就是误报，直接丢
+PRINTER_OLD_GEN_RE = re.compile(r"(?<!\d)325\d(?!\d)")
+
+
+def printer_model_id(title: str) -> str:
+    """标题 → 打印机型号键；识别不出返回 ''。
+    注意 T436W 是另一款，用 T435W(?!\\d) 精确排除。"""
+    if PRINTER_ACC_RE.search(title):
+        return ""
+    if re.search(r"T435W(?!\d)", title, re.I):
+        return "brother_t435w"
+    if PRINTER_OLD_GEN_RE.search(title):
+        return ""
+    if re.search(r"L\s?335\d(?!\d)", title, re.I):
+        return "epson_l335x"
+    return ""
+
+
 # IT之家资讯需同时命中的促销词
 DEAL_WORD_RE = re.compile(
     r"优惠|降价|好价|直降|到手|券|促销|秒杀|补贴|首发价|首销|开售|预售|立减|白条|免息|11\.11|618|双11"
@@ -409,9 +443,9 @@ def fetch_smzdm_top() -> list[dict]:
 
 # ──────────────── 源三/四：smzdm 官方 JSON API ────────────────
 
-def _smzdm_api_rows(params: dict) -> list[dict]:
+def _smzdm_api_rows(params: dict, limit: int = 20) -> list[dict]:
     """调 smzdm 官方列表 API，返回 rows；失败返回 []"""
-    query = {"limit": 20, "offset": 0, "type": "youhui", "order": "time", **params}
+    query = {"limit": limit, "offset": 0, "type": "youhui", "order": "time", **params}
     try:
         r = requests.get(SMZDM_API, params=query, headers=SMZDM_API_H, timeout=25)
         r.raise_for_status()
@@ -474,6 +508,65 @@ def fetch_smzdm_api_kw() -> list[dict]:
         time.sleep(0.4)
     log(f"[smzdm搜索API] 命中机型好价 {len(out)} 条（关键词 {len(SMZDM_API_KEYWORDS)} 组）")
     return list(out.values())
+
+
+# ──────────────── 源九：打印机好价（绝对价格窗口） ────────────────
+
+def is_printer_deal(item: dict) -> tuple[bool, str]:
+    """打印机好价：到手价必须落在该型号的价格窗口内。返回 (通过?, 说明)"""
+    tgt = PRINTER_TARGETS.get(item.get("pcat") or "")
+    if not tgt:
+        return False, "未配置价格窗口"
+    try:
+        price = float(item["price"])
+    except (TypeError, ValueError):
+        return False, "无价格"
+    lo, hi = tgt["lo"], tgt["hi"]
+    if lo <= price <= hi:
+        return True, f"{tgt['name']} ¥{price:.0f} 落在 ¥{lo}–{hi}"
+    if price > hi:
+        return False, f"{tgt['name']} ¥{price:.0f} 高于上限 ¥{hi}"
+    return False, f"{tgt['name']} ¥{price:.0f} 低于下限 ¥{lo}"
+
+
+def fetch_printer_deals() -> list[dict]:
+    """打印机爆料：走 smzdm 站内搜索。
+    limit 拉到 100，一个关键词可覆盖近一个月历史，过期爆料会被下面的失效过滤掉。"""
+    items: dict[str, dict] = {}
+    for kw in PRINTER_KEYWORDS:
+        rows = _smzdm_api_rows({"keyword": kw}, limit=100)
+        for it in rows:
+            pid = str(it.get("article_id") or "")
+            title = re.sub(r"\s+", " ", str(it.get("article_title") or "")).strip()
+            if not pid or not title or pid in items:
+                continue
+            pcat = printer_model_id(title)
+            if not pcat:
+                continue
+            raw = str(it.get("article_price") or "").strip()
+            if any(k in raw for k in ("过期", "已结束", "售罄")):   # 点进去买不到这个价
+                continue
+            pm = re.search(r"\d+(?:\.\d+)?", raw)
+            if not pm:
+                continue
+            price = pm.group(0)
+            if float(price) < 100:
+                continue
+            items[pid] = {
+                "url": f"https://www.smzdm.com/p/{pid}/",
+                "title": title,
+                "price": price,
+                "price_note": price_note(raw, title),
+                "mall": str(it.get("article_mall") or ""),
+                "src": "smzdm_printer", "kind": "deal",
+                "cat": "printer", "pcat": pcat,
+                # key 按 5 元分档：1~4 元的抖动不重复打扰，真降价（跨档）才推
+                "key": f"{pcat}|{int(float(price) // 5) * 5}",
+                "model": pcat,
+            }
+        time.sleep(0.5)
+    log(f"[打印机] 命中 {len(items)} 条爆料（关键词 {len(PRINTER_KEYWORDS)} 组）")
+    return list(items.values())
 
 
 # ──────────────── 源五：中关村在线手机报价（行情参考价） ────────────────
@@ -637,34 +730,53 @@ def build_text(deals: list[dict], news: list[dict], batch_info: str = "") -> str
     """生成 markdown 正文。用 markdown 而不是纯文本，是因为纯文本里的 URL
     在微信里点不动；markdown 的 [文字](链接) 才是可点击的。"""
     now = now_cn().strftime("%m-%d %H:%M")
+    printers = [d for d in deals if d.get("cat") == "printer"]
+    phones = [d for d in deals if d.get("cat") != "printer"]
     total = len(deals) + len(news)
-    lines = [f"**📱 机型好价速报 · {now} · 新 {total} 条{batch_info}**", ""]
-    if deals:
-        lines += [f"**━━ 好价爆料 · {len(deals)} 条 ━━**", ""]
-        for i, d in enumerate(deals[:MAX_PUSH], 1):
-            lines.append(f"**{i}. {d['title']}**")
+    lines = [f"**🔥 好价速报 · {now} · 新 {total} 条{batch_info}**", ""]
+
+    def deal_block(title: str, rows: list[dict]) -> list[str]:
+        out = [f"**━━ {title} · {len(rows)} 条 ━━**", ""]
+        for i, d in enumerate(rows[:MAX_PUSH], 1):
+            out.append(f"**{i}. {d['title']}**")
             meta = []
             if d["price"]:
                 p = f"¥{d['price']}"
-                note = d.get("price_note") or ""
-                if note:
-                    p += f"（{note}）"
+                if d.get("price_note"):
+                    p += f"（{d['price_note']}）"
                 meta.append(p)
             if d.get("mall"):
                 meta.append(d["mall"])
             meta.append(f"[查看爆料]({d['url']})")
-            lines += ["　".join(meta), ""]
+            out += ["　".join(meta), ""]
+        return out
+
+    if printers:
+        lines += deal_block("🖨️ 打印机好价", printers)
+    if phones:
+        lines += deal_block("📱 手机好价", phones)
     if news:
         lines += [f"**━━ 促销资讯 · {len(news)} 条 ━━**", ""]
         for i, n in enumerate(news, 1):
             lines += [f"**{i}. {n['title']}**", f"[查看详情]({n['url']})", ""]
     lines += [
         "---",
-        "监测：Find X9 Pro/X9s Pro/X9 Ultra · Find X10 系列 · vivo X300 Pro/X300 Ultra/X500 系列",
-        "好价=低于发行价35% · 券后/国补价已标注，最终以下单页为准",
+        "手机：Find X9 Pro/X9s Pro/X9 Ultra · Find X10 系列 · vivo X300 Pro/X300 Ultra/X500 系列（低于发行价 35%）",
+        "打印机：兄弟 T435W ¥400–550 · 爱普生 L335x ¥400–620（到手价落入区间才推）",
         "2 分钟一轮巡检 · 价格一变立即推 · 同款同价 15 分钟内不重复",
     ]
     return "\n".join(lines)
+
+
+def make_title(batch: list[dict], bi: str = "") -> str:
+    """标题随内容变：只有打印机就写打印机，混合写综合，避免手机上看到“手机好价”却是打印机"""
+    has_printer = any(x.get("cat") == "printer" for x in batch)
+    has_phone = any(x.get("cat") != "printer" and x["kind"] == "deal" for x in batch)
+    if has_printer and not has_phone:
+        return f"🖨️【打印机好价】新 {len(batch)} 条{bi}"
+    if has_printer and has_phone:
+        return f"🔥【好价】手机+打印机 · 新 {len(batch)} 条{bi}"
+    return f"📱【好价】比发行价低 35%+ · 新 {len(batch)} 条{bi}"
 
 
 def push(token: str, title: str, content: str) -> None:
@@ -736,6 +848,7 @@ def main() -> int:
                              ("smzdm榜", fetch_smzdm_top, deals),
                              ("smzdm分类API", fetch_smzdm_api_cat, deals),
                              ("smzdm搜索API", fetch_smzdm_api_kw, deals),
+                             ("打印机", fetch_printer_deals, deals),
                              ("ZOL", fetch_zol, deals),
                              ("ithome", fetch_ithome, news),
                              ("快科技", fetch_mydrivers, news),
@@ -748,17 +861,24 @@ def main() -> int:
     if len(news) > 1:
         news = dedup_news(news)
 
-    # ── 好价判断：低于发行价 35% 才保留，达不到静默淘汰 ──
+    # ── 好价判断：手机看「低于发行价 35%」，打印机看「到手价落入指定区间」，
+    #    达不到静默淘汰。两套口径并存，按 cat 分流 ──
     if deals:
-        kept = []
+        kept, n_phone, n_print = [], 0, 0
         for d in deals:
-            ok, why = is_good_deal(d)
+            is_print = d.get("cat") == "printer"
+            ok, why = is_printer_deal(d) if is_print else is_good_deal(d)
             if ok:
                 kept.append(d)
+                if is_print:
+                    n_print += 1
+                else:
+                    n_phone += 1
             else:
                 log(f"[好价过滤] 淘汰 {why} | {d['title'][:44]}")
         if len(kept) != len(deals):
-            log(f"[好价过滤] {len(kept)}/{len(deals)} 条达标（低于发行价 35%）")
+            log(f"[好价过滤] {len(kept)}/{len(deals)} 条达标"
+                f"（手机 {n_phone} 条低于发行价 35% · 打印机 {n_print} 条落入价格区间）")
         deals = kept
 
     if not deals and not news:
@@ -823,7 +943,7 @@ def main() -> int:
         d = [x for x in batch if x["kind"] == "deal"]
         n = [x for x in batch if x["kind"] == "news"]
         bi = f" · 批 {idx}/{len(batches)}" if len(batches) > 1 else ""
-        title = f"📱【好价】比发行价低 35%+ · 新 {len(batch)} 条{bi}"
+        title = make_title(batch, bi)
         try:
             push(token, title, build_text(d, n, bi))
             sent += 1
