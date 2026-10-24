@@ -9,7 +9,7 @@
 （前缀匹配，未来新增后缀自动覆盖；EXCLUDED_MODELS 里的基础款除外）
 
 推送规则：
-- 好价判断：售价须低于官方【发行价】30% 以上才算好价（RRP_TABLE 发行价表），
+- 好价判断：售价须低于官方【发行价】35% 以上才算好价（RRP_TABLE 发行价表），
   达不到直接静默淘汰——官方发行价原价冒充的"好价"一律不推
 - 同一「型号 + 价格」的消息最多推送 3 次，两次间隔至少 15 分钟
   （同款反复被爆料时：首见即推，15 分钟后若还在则第 2 次，30 分钟后第 3 次，之后不再推）
@@ -168,8 +168,8 @@ OPPO_OFFICIAL_SKUS = {
     "45222": "OPPO Find X10 E",
 }
 
-# ── 好价阈值：低于发行价 30% 才算好价 ──
-GOOD_DEAL_DISCOUNT = 0.30        # 好价判定：售价 ≤ 发行价 ×(1-30%)
+# ── 好价阈值：低于发行价 35% 才算好价 ──
+GOOD_DEAL_DISCOUNT = 0.35        # 好价判定：售价 ≤ 发行价 ×(1-35%)
 # 异常下限：手机不可能打到发行价 4.5 折，低于此值基本是券额/配件/定金被误当整机价
 MIN_PRICE_RATIO = 0.45
 
@@ -260,7 +260,7 @@ def price_note(raw: str, title: str = "") -> str:
 
 
 def is_good_deal(item: dict) -> tuple[bool, str]:
-    """好价判断：售价 ≤ 发行价×(1-30%) 才算好价。返回 (通过?, 说明)"""
+    """好价判断：售价 ≤ 发行价×(1-35%) 才算好价。返回 (通过?, 说明)"""
     title = item["title"]
     try:
         price = float(item["price"])
@@ -661,7 +661,7 @@ def build_text(deals: list[dict], news: list[dict], batch_info: str = "") -> str
     lines += [
         "---",
         "监测：Find X9 Pro/X9s Pro/X9 Ultra · Find X10 系列 · vivo X300 Pro/X300 Ultra/X500 系列",
-        "好价=低于发行价30% · 券后/国补价已标注，最终以下单页为准",
+        "好价=低于发行价35% · 券后/国补价已标注，最终以下单页为准",
         "2 分钟一轮巡检 · 价格一变立即推 · 同款同价 15 分钟内不重复",
     ]
     return "\n".join(lines)
@@ -748,7 +748,7 @@ def main() -> int:
     if len(news) > 1:
         news = dedup_news(news)
 
-    # ── 好价判断：低于发行价 30% 才保留，达不到静默淘汰 ──
+    # ── 好价判断：低于发行价 35% 才保留，达不到静默淘汰 ──
     if deals:
         kept = []
         for d in deals:
@@ -758,7 +758,7 @@ def main() -> int:
             else:
                 log(f"[好价过滤] 淘汰 {why} | {d['title'][:44]}")
         if len(kept) != len(deals):
-            log(f"[好价过滤] {len(kept)}/{len(deals)} 条达标（低于发行价 30%）")
+            log(f"[好价过滤] {len(kept)}/{len(deals)} 条达标（低于发行价 35%）")
         deals = kept
 
     if not deals and not news:
@@ -823,7 +823,7 @@ def main() -> int:
         d = [x for x in batch if x["kind"] == "deal"]
         n = [x for x in batch if x["kind"] == "news"]
         bi = f" · 批 {idx}/{len(batches)}" if len(batches) > 1 else ""
-        title = f"📱【好价】比发行价低 30%+ · 新 {len(batch)} 条{bi}"
+        title = f"📱【好价】比发行价低 35%+ · 新 {len(batch)} 条{bi}"
         try:
             push(token, title, build_text(d, n, bi))
             sent += 1
