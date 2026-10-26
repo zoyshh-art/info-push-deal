@@ -11,9 +11,10 @@
 推送规则：
 - 好价判断：售价须低于官方【发行价】35% 以上才算好价（RRP_TABLE 发行价表），
   达不到直接静默淘汰——官方发行价原价冒充的"好价"一律不推
-- 同一条信息只推一次：同一「型号 + 价格档」见过就跳过，不做二次、三次提醒
-- 价格按 10 元归档（3441.65/3441.7/3442 算同一档），同型号 24 小时内价格相差 ≤1.5%
+- 去重按「机型 + 价格档」：同一档价格 24 小时内只推一次，隔 24 小时再出现可以再提醒一次
+- 价格按 10 元归档（3441.65/3441.7/3442 算同一档），同机型 24 小时内价格相差 ≤1%
   也视为同一条信息——避免不同渠道差几块钱就被当成新降价反复推
+- 机型级而非系列级：Find X9 Pro / X9s Pro / X9 Ultra 各算各的，同价不会被合并
 - 单条消息最多 10 条，超出自动拆成多条消息依次推送（间隔 5 秒、单轮最多 4 条）；
   单轮发不完的自动留到下一轮巡检续推——全部推到微信，不需要去别处查看
 - 降价产生新价格 = 新消息，正常推送
@@ -65,18 +66,28 @@ except Exception:
 MAX_PUSH = 10                 # 单条消息最多条目数（超出自动拆成多条消息）
 MAX_MSGS_PER_RUN = 4          # 单轮最多推送消息数（分批发完，余量下轮续推）
 MSG_GAP_SEC = 5               # 分批消息间隔秒（PushPlus 微信渠道限 1 分钟 5 次）
-# ── 去重：同一条信息只推一次（2026-10-26 收紧）──
-# 旧规则是「同款同价最多推 3 次、间隔 15 分钟」，等于同一条爆料在半小时内被推三遍。
-# 现在改成见过即跳过；真正的价格变动会落到新的价格档，自然成为新条目。
+# ── 去重：同一条信息短时间内不重复推（2026-10-26 两次收紧）──
+# 旧规则是「同款同价最多推 3 次、间隔 15 分钟」，等于同一条爆料在半小时内被推三遍，已废。
+# 现行规则：同一「机型 + 价格档」24 小时内只推一次；隔 24 小时再出现，可以再提醒一次。
 PRICE_BUCKET = 10             # 手机价格归档粒度（元）：3441.65/3441.7/3442 归为同一档
-NEAR_PRICE_PCT = 0.01         # 同型号近价判定：相差 ≤1%（按价格比例，不按绝对值）
+NEAR_PRICE_PCT = 0.01         # 同机型近价判定：相差 ≤1%（按价格比例，不按绝对值）
 NEAR_PRICE_FLOOR = 5          # 近价判定的绝对下限（元）：500 元的打印机不该容忍 20 元偏差
-NEAR_PRICE_HOURS = 24         # 近价判定的时间窗口（小时），超过就允许重新推
+SAME_PRICE_REMIND_HOURS = 24  # 同一档价格的重推间隔（小时）：近价判定与重推窗口共用
 PHONE_MIN_PRICE = 800         # 手机价格下限：低于此值基本是配件/定金/券额被误当整机价
 STATE_KEEP = 800              # 状态保留条数
 STATE_MAX_AGE_DAYS = 60       # 状态保留天数
+STATE_SCHEMA = 2              # 状态格式版本：1=系列级 key+原始价格，2=机型级 key+价格档
 STATE_PATH = Path(__file__).resolve().parent.parent / "data" / "phone_deal_state.json"
 LEGACY_PATH = Path(__file__).resolve().parent.parent / "data" / "phone_deal_history.json"
+
+# 系列级 key → 机型级 key。旧状态里 Find X9 Pro / X9s Pro / X9 Ultra 都压在 findx9 下，
+# 迁移时按这个表拆开；已停跟的基础款（x9/x300/x300s/x300e）不再列。
+SERIES_VARIANTS = {
+    "findx9":  ["x9pro", "x9spro", "x9ultra"],
+    "findx10": ["x10", "x10promax", "x10e"],
+    "x300":    ["x300pro", "x300ultra"],
+    "x500":    ["x500", "x500pro", "x500promax"],
+}
 
 PUSH_URL = "https://www.pushplus.plus/send"
 
@@ -271,6 +282,20 @@ def full_model_id(text: str) -> str:
     return ""
 
 
+def model_id_for(title: str) -> str:
+    """标题 → 机型级去重键：'Find X9 Pro' → 'x9pro'，'vivo X500 Pro' → 'x500pro'。
+
+    与 model_key() 的区别：model_key 只取 MODEL_RE 命中的前缀（'Find X9'→'findx9'），
+    会把同系列的 Pro / Pro Max / Ultra 压成一条；这里用完整型号，同系列不同机型分开算。
+    识别不出完整型号时回落到系列级，保证不会返回空 key。
+    """
+    mid = full_model_id(title)
+    if mid:
+        return mid
+    m = MODEL_RE.search(title)
+    return model_key(m.group(0)) if m else ""
+
+
 def config_key(text: str) -> str:
     """标题 → 配置键：'16GB+512GB' → '16+512'；'16+1TB' → '16+1tb'"""
     m = CONFIG_RE.search(text)
@@ -365,7 +390,7 @@ def fetch_smzdm() -> list[dict]:
         win = text[m.start(): m.start() + 1500]
         pm = re.search(r'class="[^"]*price[^"]*"[^>]*>\s*[¥￥]?\s*([\d]{2,6}(?:\.\d{1,2})?)', win)
         price = pm.group(1) if pm else ""
-        mk = model_key(mm.group(0))
+        mk = model_id_for(title) or model_key(mm.group(0))
         items[pid] = {
             "url": url, "title": title, "price": price,
             "src": "smzdm", "kind": "deal",
@@ -403,10 +428,9 @@ def fetch_oppo_official() -> list[dict]:
         tm = (re.search(r'<h1 class="tit"[^>]*>([^<]+)</h1>', page)
               or re.search(r'<title>([^<]+)</title>', page))
         detail = re.sub(r"\s+", " ", tm.group(1)).strip() if tm else name
-        # 与 smzdm 等源共用「型号+价格档」命名空间：同款同价只推一次，
+        # 与 smzdm 等源共用「机型+价格档」命名空间：同款同价只推一次，
         # 不再因为「来自官方商城」而单独再推一遍
-        hm = model_hit(f"OPPO {detail}")
-        mk = model_key(hm.group(0)) if hm else f"off{sid}"
+        mk = model_id_for(f"OPPO {detail}") or f"off{sid}"
         items.append({
             "url": f"https://www.opposhop.cn/cn/m/product/index?skuId={sid}",
             "title": f"OPPO官方 · {detail}",
@@ -451,7 +475,7 @@ def fetch_smzdm_top() -> list[dict]:
                 continue
             if pid in items:
                 continue
-            mk = model_key(mm.group(0))
+            mk = model_id_for(title) or model_key(mm.group(0))
             items[pid] = {
                 "url": f"https://www.smzdm.com/p/{pid}/",
                 "title": title, "price": price,
@@ -500,7 +524,7 @@ def _api_rows_to_items(rows: list[dict], src: str) -> dict[str, dict]:
             continue
         pm = re.search(r"\d+(?:\.\d+)?", raw)
         price = pm.group(0) if pm and float(pm.group(0)) >= 100 else ""
-        mk = model_key(mm.group(0))
+        mk = model_id_for(title) or model_key(mm.group(0))
         url = f"https://www.smzdm.com/p/{pid}/"
         items[pid] = {
             "url": url, "title": title, "price": price,
@@ -624,7 +648,7 @@ def fetch_zol() -> list[dict]:
             href = re.search(r'href="(/cell_phone/index\d+\.shtml)"', block)
             item_url = ("https://detail.zol.com.cn" + href.group(1)) if href else page_url
             price = pm.group(1)
-            mk = model_key(mm.group(0))
+            mk = model_id_for(title) or model_key(mm.group(0))
             items[pid] = {
                 "url": item_url, "title": title, "price": price,
                 "price_note": "参考价",     # ZOL 给的是媒体参考价，不是电商实际售价
@@ -684,33 +708,45 @@ def fetch_mydrivers() -> list[dict]:
     return out
 
 
-# ──────────────── 状态：同一条信息只推一次 ────────────────
+# ──────────────── 状态：同机型同价 24 小时内不重复推 ────────────────
 
 def _migrate_keys(entries: dict) -> dict:
-    """旧版 key 迁移到「型号 + 价格档」。
+    """旧格式状态（schema 1）迁移到 schema 2：机型级 key + 价格档。
 
-    归一化之前存下的 key 是 {型号}|{原始价格}（如 findx9pro|3441.65），
-    与新格式 {型号}|{3440} 对不上——不迁移的话，上线第一轮会把历史条目
-    全部当成「新降价」重推一遍，正好是要解决的问题本身。
-    旧 OPPO 命名空间 off|{sid}|{price} 也一并映射回型号。
+    两件事：
+    1. 价格归一化 —— 旧 key 存的是原始价格（findx9|3441.65），与新格式 findx9|3440 对不上。
+    2. 系列级拆到机型级 —— 旧 key 的 findx9 其实混了 X9 Pro / X9s Pro / X9 Ultra，
+       按 SERIES_VARIANTS 拆开；拆不出来就保留原 key（宁可少抑制，不可乱抑制）。
+
+    只保留 SAME_PRICE_REMIND_HOURS 内推过的条目：新规则下更早的条目本来就不再起
+    抑制作用，留着只会把状态文件撑大。资讯 key（n|）不涉及价格，永久保留。
     """
+    now = now_cn()
+    keep_after = (now - timedelta(hours=SAME_PRICE_REMIND_HOURS)).isoformat(timespec="seconds")
     out: dict = {}
     for k, v in entries.items():
-        if k.startswith("n|"):          # 资讯 key 不涉及价格
+        if k.startswith("n|"):              # 资讯按链接永久去重
             out[k] = v
+            continue
+        if v.get("last", "") < keep_after:  # 超过重推窗口，不再需要抑制
             continue
         parts = k.split("|")
         if len(parts) == 3 and parts[0] == "off":
             name = OPPO_OFFICIAL_SKUS.get(parts[1], "")
-            hm = model_hit(f"OPPO {name}") if name else None
-            nk = f"{model_key(hm.group(0))}|{price_bucket(parts[2])}" if hm else k
+            mid = model_id_for(f"OPPO {name}") if name else ""
+            targets = [f"{mid}|{price_bucket(parts[2])}"] if mid else [k]
         elif len(parts) == 2:
-            nk = f"{parts[0]}|{price_bucket(parts[1])}"
+            head, price = parts
+            price = price_bucket(price)
+            variants = SERIES_VARIANTS.get(head)
+            targets = ([f"{x}|{price}" for x in variants] if variants
+                       else [f"{head}|{price}"])
         else:
-            nk = k
-        old = out.get(nk)
-        if old is None or v.get("last", "") > old.get("last", ""):
-            out[nk] = v
+            targets = [k]
+        for t in targets:
+            old = out.get(t)
+            if old is None or v.get("last", "") > old.get("last", ""):
+                out[t] = v
     return out
 
 
@@ -719,7 +755,9 @@ def load_state() -> dict:
     try:
         data = json.loads(STATE_PATH.read_text(encoding="utf-8"))
         if isinstance(data.get("entries"), dict):
-            return _migrate_keys(data["entries"])
+            if data.get("schema", 1) < STATE_SCHEMA:
+                return _migrate_keys(data["entries"])
+            return data["entries"]
     except (OSError, ValueError):
         pass
     return {}
@@ -740,25 +778,27 @@ def save_state(entries: dict) -> None:
             del kept[k]
 
     try:
-        old = json.loads(STATE_PATH.read_text(encoding="utf-8")).get("entries")
+        prev = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+        old, old_schema = prev.get("entries"), prev.get("schema", 1)
     except (OSError, ValueError):
-        old = None
-    if old == kept:
+        old, old_schema = None, None
+    if old == kept and old_schema == STATE_SCHEMA:
         return   # 无实质变化，不落盘（workflow 会看到 no state changes 并跳过 commit）
 
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(
-        json.dumps({"entries": kept, "updated": now_cn().isoformat(timespec="seconds")},
+        json.dumps({"schema": STATE_SCHEMA, "entries": kept,
+                    "updated": now_cn().isoformat(timespec="seconds")},
                    ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
 
 
 def near_pushed(it: dict, entries: dict, now: datetime) -> bool:
-    """同型号、近价、近期推过 → 视为同一条信息。
+    """同机型、近价、近期推过 → 视为同一条信息。
 
     价格档（10 元）解决的是同一报价的小数抖动；这里再兜一层：不同渠道/不同卖家
-    对同一台机器报价常差几十块，单靠档位仍会漏网，所以对同型号做 ±1.5% 的模糊判重。
+    对同一台机器报价常差几十块，单靠档位仍会漏网，所以对同机型做 ±1% 的模糊判重。
     """
     mk = it.get("model") or ""
     try:
@@ -768,7 +808,7 @@ def near_pushed(it: dict, entries: dict, now: datetime) -> bool:
     if not mk or price <= 0:
         return False
     tol = max(NEAR_PRICE_FLOOR, price * NEAR_PRICE_PCT)
-    since = now - timedelta(hours=NEAR_PRICE_HOURS)
+    since = now - timedelta(hours=SAME_PRICE_REMIND_HOURS)
     prefix = mk + "|"
     for k, v in entries.items():
         if not k.startswith(prefix):
@@ -785,25 +825,35 @@ def near_pushed(it: dict, entries: dict, now: datetime) -> bool:
 
 
 def gate(items: list[dict], entries: dict) -> list[dict]:
-    """筛出本批可推送条目：同一条信息只推一次。
+    """筛出本批可推送条目。
 
-    见过的 key 直接跳过（不再有「15 分钟后第 2 次、30 分钟后第 3 次」）；
-    价格真降了会落到新的价格档，自然作为新条目推送。
-    准入即刻写入内存状态，防止同一轮内重复。
+    规则：同一「机型 + 价格档」在 SAME_PRICE_REMIND_HOURS（24 小时）内只推一次；
+    超过 24 小时再出现，允许再提醒一次。资讯按链接永久去重（新闻没有"降价"概念）。
+    价格真降了会落到新的价格档，立刻作为新条目推送，不受 24 小时限制。
     """
     now = now_cn()
     fresh = []
     skipped = 0
     for it in items:
-        if it["key"] in entries:
-            continue
+        e = entries.get(it["key"])
+        if e is not None:
+            if it["kind"] == "news":
+                continue                     # 资讯按链接去重，不设时间窗口
+            try:
+                last = datetime.fromisoformat(e.get("last", ""))
+            except (TypeError, ValueError):
+                last = None
+            if last and now - last < timedelta(hours=SAME_PRICE_REMIND_HOURS):
+                continue                     # 24 小时内同档价格不重复推
         if it["kind"] == "deal" and near_pushed(it, entries, now):
             skipped += 1
             continue
         fresh.append(it)
-        entries[it["key"]] = {"count": 1, "last": now.isoformat(timespec="seconds")}
+        prev = entries.get(it["key"]) or {}
+        entries[it["key"]] = {"count": prev.get("count", 0) + 1,
+                              "last": now.isoformat(timespec="seconds")}
     if skipped:
-        log(f"[去重] 同型号近价已推过，跳过 {skipped} 条")
+        log(f"[去重] 同机型近价已推过，跳过 {skipped} 条")
     return fresh
 
 
@@ -846,7 +896,7 @@ def build_text(deals: list[dict], news: list[dict], batch_info: str = "") -> str
         "---",
         "手机：Find X9 Pro/X9s Pro/X9 Ultra · Find X10 系列 · vivo X300 Pro/X300 Ultra/X500 系列（低于发行价 35%）",
         "打印机：兄弟 T435W ¥400–500 · 爱普生 L335x ¥400–600（到手价落入区间才推）",
-        "2 分钟一轮巡检 · 价格一变立即推 · 同一条信息只推一次",
+        "2 分钟一轮巡检 · 价格一变立即推 · 同机型同价 24 小时内不重复",
     ]
     return "\n".join(lines)
 
