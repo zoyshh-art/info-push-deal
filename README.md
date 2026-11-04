@@ -105,39 +105,37 @@ python scripts/ai_deal.py                # AI 免费额度，真实推送
 
 # AI 免费额度监控（`scripts/ai_deal.py`）
 
-盯「哪里有免费额度 / 哪家在降价」，优先国际厂商。每小时巡检一次。
+盯「哪里能白嫖」和「哪家活动变了」，**不推模型降价、不发教程水文**。每小时巡检一次。
 
-## 为什么用这两个源
-
-选源的标准是**机器可读 + 信号密度高**，不是"能搜到就算"：
+## 三个源，按信号价值排序
 
 | 源 | 拿到什么 | 为什么选它 |
 |---|---|---|
-| GitHub · `mnfst/awesome-free-llm-apis` | 15 个服务商的永久免费层、全部模型、限流额度 | 12k+ star，维护活跃（2026-11 仍在更新）。仓库根目录的 `data.json` 是**结构化数据**，比解析 README 可靠得多 |
-| OpenRouter `/api/v1/models` | 453 个模型的实时单价 | 直接给 JSON，能算"免费"和"降价"，不依赖网页改版 |
+| ★ `rockbenben/free-llm-intel` | **每天 70 家厂商的免费额度政策变化**，带前值→后值的中文摘要 | 它已经替你把 OpenAI / Anthropic / Gemini / Groq / DeepSeek / 通义 / Kimi / 智谱 / 豆包 等官方页面巡检了一遍，还做了英文精译。是唯一能持续产出「最新免费 token / 活动」的源 |
+| `mnfst/awesome-free-llm-apis` | 15 家服务商的永久免费层、全部模型、限流额度 | 12k+ star，`data.json` 是结构化数据，比解析 README 可靠 |
+| OpenRouter `/api/v1/models` | 453 个模型的实时价格 | 只取「完全免费」（输入输出单价都为 0）的模型增减 |
 
-试过但放弃的源：
-
-- **Hacker News 关键词搜索**：实测噪音极大，搜 `free API credits` 返回的全是无关的 Show HN
-- **LiteLLM 价格库**：文件超 1MB，GitHub contents API 取不到正文；且含大量冷门微调模型，降价噪音大
+第一个源是关键。之前只用后两个时，只能看到「长期不变的免费清单」和「价格波动」，抓不到「哪家刚放活动」——而这恰恰是最有价值的部分。
 
 ## 监控什么
 
 | 事件 | 判定方式 |
 |---|---|
+| **免费政策变化** | intel changelog 里出现未推送过的「厂商 + 日期」记录 |
 | 新增免费服务商 | `data.json` 里出现未记录过的 provider |
 | 免费清单新增模型 | 已存在的 provider 下出现新 model id |
 | 免费额度变化 | provider 的 `description` / `baseUrl` 内容哈希变了 |
 | OpenRouter 新增免费模型 | 输入与输出单价都为 0，且未记录过 |
-| 主流模型降价 | 输入+输出合计价 ≤ 旧价 × 75%（降 25% 以上），**且连续两轮都成立** |
 
-降价只盯主流厂商（`MAJOR_PREFIXES`：openai / anthropic / google / deepseek / qwen / meta-llama / mistralai / x-ai / moonshotai / z-ai / minimax / nvidia / cohere / amazon / microsoft）。453 个模型里冷门版本太多，全盯会变成噪音。旧价低于 `$0.05/百万 token` 的也不看——已经很便宜，再降 25% 没有意义。
+intel 源按「厂商 + 日期」去重，同一天同一家最多推一条——changelog 一天内可能多次修订，按内容哈希去重会刷屏。
 
-### 为什么降价要「连续两轮」确认
+## 试过但放弃的源
 
-OpenRouter 是聚合器，同一个模型背后有多个上游供应商，**价格会随路由切换而分钟级抖动**。实测 `openai/gpt-oss-120b` 在 1 分钟内从 `$0.113/百万` 跳回 `$0.75/百万`，单次采样会把它当成「降价 85%」推出去。
-
-所以降价先记入 `or|pend|{model}` 挂起，下一轮（1 小时后）仍是这个价位才推。多等一小时，换掉全部假信号——这类信息本来也不是抢购，时效性不敏感。
+- **模型降价**：用户明确说没价值。而且 OpenRouter 是聚合器，价格随上游路由分钟级抖动（实测 `gpt-oss-120b` 在 `$0.113` 和 `$0.75` 之间来回跳），噪音远大于信号
+- **Hacker News 关键词搜索**：搜 `free API credits` 返回的全是无关 Show HN，加分和时效过滤后依然如此
+- **官方博客 RSS**：OpenAI 的 RSS 有 1355 条，全是收购 / 任命 / 安全公告，跟免费额度无关，信号密度极低
+- **Reddit**：本地网络被代理拦截，无法验证；且需要额外的反爬处理
+- **LiteLLM 价格库**：文件超 1MB，GitHub contents API 取不到正文
 
 ## 刻意不碰的东西
 
@@ -147,14 +145,14 @@ OpenRouter 是聚合器，同一个模型背后有多个上游供应商，**价�
 
 ## 去重规则
 
-- 同类信息**只推一次**，推过就不再推（这类信息没有"抢购时效性"，重复推是骚扰）
-- 首次运行只记基线不推送
-- 基线存 `data/ai_deal_state.json`，保留最近 3000 条
+- 同一条变化**只推一次**，推过就不再推
+- 首次接入 intel 源时只记基线，不会把历史 150 条一次性倒出来（`meta|intel_baselined` 标记）
+- 基线存 `data/ai_deal_state.json`，`schema: 2`，保留最近 3000 条
 
 ## 频率
 
 `cron: "20 * * * *"`，每小时一次，错开整点（整点是 GitHub 调度高峰）。
 
-这类信息变化慢——免费清单一天更新几次，OpenRouter 模型增减也是零星的——没必要像手机好价那样 2 分钟一轮。工作流 `ai-watch.yml` 与手机好价的 `deal-watch.yml` 完全独立，互不阻塞。
+intel 源每天更新 1–2 次，每小时巡检足够覆盖。工作流 `ai-watch.yml` 与手机好价的 `deal-watch.yml` 完全独立，互不阻塞。
 
 手动调试：**Actions → AI 免费额度监控 → Run workflow**，勾选 `dry_run` 只打印不推送。
