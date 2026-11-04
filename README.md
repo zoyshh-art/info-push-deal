@@ -129,9 +129,15 @@ python scripts/ai_deal.py                # AI 免费额度，真实推送
 | 免费清单新增模型 | 已存在的 provider 下出现新 model id |
 | 免费额度变化 | provider 的 `description` / `baseUrl` 内容哈希变了 |
 | OpenRouter 新增免费模型 | 输入与输出单价都为 0，且未记录过 |
-| 主流模型降价 | 输入+输出合计价 ≤ 旧价 × 75%（降 25% 以上） |
+| 主流模型降价 | 输入+输出合计价 ≤ 旧价 × 75%（降 25% 以上），**且连续两轮都成立** |
 
 降价只盯主流厂商（`MAJOR_PREFIXES`：openai / anthropic / google / deepseek / qwen / meta-llama / mistralai / x-ai / moonshotai / z-ai / minimax / nvidia / cohere / amazon / microsoft）。453 个模型里冷门版本太多，全盯会变成噪音。旧价低于 `$0.05/百万 token` 的也不看——已经很便宜，再降 25% 没有意义。
+
+### 为什么降价要「连续两轮」确认
+
+OpenRouter 是聚合器，同一个模型背后有多个上游供应商，**价格会随路由切换而分钟级抖动**。实测 `openai/gpt-oss-120b` 在 1 分钟内从 `$0.113/百万` 跳回 `$0.75/百万`，单次采样会把它当成「降价 85%」推出去。
+
+所以降价先记入 `or|pend|{model}` 挂起，下一轮（1 小时后）仍是这个价位才推。多等一小时，换掉全部假信号——这类信息本来也不是抢购，时效性不敏感。
 
 ## 刻意不碰的东西
 
