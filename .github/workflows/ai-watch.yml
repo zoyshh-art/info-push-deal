@@ -1,0 +1,64 @@
+name: AI 免费额度监控
+
+on:
+  schedule:
+    # 每小时一次，错开整点（整点是 GitHub 调度高峰，容易延迟）。
+    # 这类信息变化慢：免费清单一天更新几次、OpenRouter 模型增减也是零星的，
+    # 没必要像手机好价那样 2 分钟一轮，每小时足够且不打扰。
+    - cron: "20 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "只打印不推送（调试用）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # 回写基线 data/ai_deal_state.json
+
+concurrency:
+  group: ai-watch-git
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖
+        run: pip install -q requests
+
+      - name: 巡检
+        env:
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "== DRY RUN（不推送、不提交）=="
+            python scripts/ai_deal.py --dry-run
+            exit 0
+          fi
+
+          python scripts/ai_deal.py
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ai_deal_state.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no state changes"
+          else
+            git commit -m "chore(ai): 更新 AI 额度监控基线 [skip ci]"
+            git push origin main || {
+              sleep 5
+              git pull --rebase origin main || git rebase --abort
+              git push origin main || echo "::warning::基线回写失败，下轮重新记账"
+            }
+          fi
