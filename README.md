@@ -1,6 +1,13 @@
-# 好价监控（vivo 手机）
+# 好价监控（vivo 手机 + AI 免费额度）
 
 从 [info-push](https://github.com/zoyshh-art/info-push) 拆分出来的独立盯价仓库。
+
+仓库里跑两个互不干扰的监控，各有独立的脚本和工作流：
+
+| 监控 | 脚本 | 频率 | 推送内容 |
+|---|---|---|---|
+| 手机好价 | `scripts/phone_deal.py` | 2 分钟一轮 | vivo 机型低于发行价 35% |
+| AI 免费额度 | `scripts/ai_deal.py` | 每小时 | 新增免费 LLM 服务商/模型、额度变化、模型降价 |
 
 > **2026-11-04 更新**：按用户要求下线 **打印机**（兄弟 T435W / 爱普生 L335x）与 **OPPO 手机**（Find X9 / X10 系列）。
 > 代码与配置全部保留，靠脚本顶部两个开关控制，改回 `True` 即恢复，无需回滚：
@@ -88,6 +95,60 @@
 ```bash
 pip install -r requirements.txt
 export PUSHPLUS_TOKEN=你的令牌      # Windows: set PUSHPLUS_TOKEN=...
-python scripts/phone_deal.py --dry-run   # 只打印
-python scripts/phone_deal.py             # 真实推送
+python scripts/phone_deal.py --dry-run   # 手机好价，只打印
+python scripts/phone_deal.py             # 手机好价，真实推送
+python scripts/ai_deal.py --dry-run      # AI 免费额度，只打印
+python scripts/ai_deal.py                # AI 免费额度，真实推送
 ```
+
+---
+
+# AI 免费额度监控（`scripts/ai_deal.py`）
+
+盯「哪里有免费额度 / 哪家在降价」，优先国际厂商。每小时巡检一次。
+
+## 为什么用这两个源
+
+选源的标准是**机器可读 + 信号密度高**，不是"能搜到就算"：
+
+| 源 | 拿到什么 | 为什么选它 |
+|---|---|---|
+| GitHub · `mnfst/awesome-free-llm-apis` | 15 个服务商的永久免费层、全部模型、限流额度 | 12k+ star，维护活跃（2026-11 仍在更新）。仓库根目录的 `data.json` 是**结构化数据**，比解析 README 可靠得多 |
+| OpenRouter `/api/v1/models` | 453 个模型的实时单价 | 直接给 JSON，能算"免费"和"降价"，不依赖网页改版 |
+
+试过但放弃的源：
+
+- **Hacker News 关键词搜索**：实测噪音极大，搜 `free API credits` 返回的全是无关的 Show HN
+- **LiteLLM 价格库**：文件超 1MB，GitHub contents API 取不到正文；且含大量冷门微调模型，降价噪音大
+
+## 监控什么
+
+| 事件 | 判定方式 |
+|---|---|
+| 新增免费服务商 | `data.json` 里出现未记录过的 provider |
+| 免费清单新增模型 | 已存在的 provider 下出现新 model id |
+| 免费额度变化 | provider 的 `description` / `baseUrl` 内容哈希变了 |
+| OpenRouter 新增免费模型 | 输入与输出单价都为 0，且未记录过 |
+| 主流模型降价 | 输入+输出合计价 ≤ 旧价 × 75%（降 25% 以上） |
+
+降价只盯主流厂商（`MAJOR_PREFIXES`：openai / anthropic / google / deepseek / qwen / meta-llama / mistralai / x-ai / moonshotai / z-ai / minimax / nvidia / cohere / amazon / microsoft）。453 个模型里冷门版本太多，全盯会变成噪音。旧价低于 `$0.05/百万 token` 的也不看——已经很便宜，再降 25% 没有意义。
+
+## 刻意不碰的东西
+
+**国内「API 中转站」「号池」不做监控，也不推荐。**
+
+这类按转售价兜售官方额度的生意，2026 年已被多地警方以非法获取计算机信息系统数据立案，公开报道中有站长被刑事拘留的案例；此外账号随时封禁、请求与数据经第三方转发。本脚本只监控**厂商官方**的免费层与公开定价，清单里出现的中国大陆厂商（Z AI / ModelScope / SiliconFlow）也都是官方渠道。
+
+## 去重规则
+
+- 同类信息**只推一次**，推过就不再推（这类信息没有"抢购时效性"，重复推是骚扰）
+- 首次运行只记基线不推送
+- 基线存 `data/ai_deal_state.json`，保留最近 3000 条
+
+## 频率
+
+`cron: "20 * * * *"`，每小时一次，错开整点（整点是 GitHub 调度高峰）。
+
+这类信息变化慢——免费清单一天更新几次，OpenRouter 模型增减也是零星的——没必要像手机好价那样 2 分钟一轮。工作流 `ai-watch.yml` 与手机好价的 `deal-watch.yml` 完全独立，互不阻塞。
+
+手动调试：**Actions → AI 免费额度监控 → Run workflow**，勾选 `dry_run` 只打印不推送。
