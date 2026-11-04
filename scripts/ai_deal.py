@@ -252,21 +252,26 @@ def parse_openrouter(models: list[dict], entries: dict, now: datetime) -> list[d
         cur = pin + pout
         if cur <= 0 or cur < MIN_OLD_PRICE:
             continue
-        # 用「已记录的旧价」比对：key 里带价格，所以降价会生成新 key
-        old = None
-        for k, v in entries.items():
-            if k.startswith(f"or|price|{mid}|"):
-                try:
-                    old = float(k.rsplit("|", 1)[1])
-                except ValueError:
-                    continue
-                break
+        # 用「最近一次记录的价格」比对。不能随便取一条：价格可能降了又涨回去，
+        # 取到更早那条低价会把涨价误判成降价。
         pk = f"or|price|{mid}|{cur}"
         if pk in entries:
             continue
+        old, old_ts = None, ""
+        for k, v in entries.items():
+            if not k.startswith(f"or|price|{mid}|"):
+                continue
+            ts = v.get("last", "")
+            if ts <= old_ts:
+                continue
+            try:
+                cand = float(k.rsplit("|", 1)[1])
+            except ValueError:
+                continue
+            old, old_ts = cand, ts
         mark(entries, pk, now)
-        if old is None:
-            continue              # 首次见到这个模型，只记基线
+        if old is None or cur >= old:
+            continue              # 首次见到该模型（只记基线），或价格没降
         if cur <= old * (1 - PRICE_DROP_RATIO):
             out.append({
                 "kind": "drop", "key": pk,
