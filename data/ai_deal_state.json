@@ -1,0 +1,1371 @@
+{
+ "schema": 1,
+ "entries": {
+  "mnfst|provider|Aion Labs": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Aion Labs|aion-labs/aion-2.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Aion Labs|aion-labs/aion-rp-llama-3.1-8b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Aion Labs|aion-labs/aion-3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Aion Labs|aion-labs/aion-3.0-mini": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Aion Labs|c9c676ee07": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|Cohere": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-a-plus-05-2026": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-a-03-2025": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-r-plus-08-2024": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-r-08-2024": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-r7b-12-2024": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-a-reasoning-08-2025": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-a-translate-08-2025": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-a-vision-07-2025": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|command-r7b-arabic-02-2025": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|c4ai-aya-expanse-32b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cohere|c4ai-aya-vision-32b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Cohere|7624178832": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|Google Gemini": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Google Gemini|gemini-3.8-flash": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Google Gemini|gemini-3.6-flash": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Google Gemini|gemini-3.5-flash-lite": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Google Gemini|gemini-3.1-flash-lite": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Google Gemini|gemini-2.5-flash": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Google Gemini|gemini-2.5-flash-lite": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Google Gemini|gemma-4-31b-it": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Google Gemini|gemma-4-26b-a4b-it": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Google Gemini|7beee36713": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|Mistral AI": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Mistral AI|mistral-medium-3-5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Mistral AI|mistral-small-2603": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Mistral AI|mistral-large-2512": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Mistral AI|ministral-8b-2512": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Mistral AI|codestral-2508": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Mistral AI|ministral-3b-2512": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Mistral AI|ministral-14b-2512": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Mistral AI|0adc248bab": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|Z AI (Zhipu AI)": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Z AI (Zhipu AI)|glm-4.7-flash": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Z AI (Zhipu AI)|glm-4.5-flash": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Z AI (Zhipu AI)|glm-4.6v-flash": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Z AI (Zhipu AI)|524049a582": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|Cloudflare Workers AI": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cloudflare Workers AI|@cf/meta/llama-3.3-70b-instruct-fp8-fast": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cloudflare Workers AI|@cf/meta/llama-4-scout-17b-16e-instruct": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cloudflare Workers AI|@cf/openai/gpt-oss-120b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cloudflare Workers AI|@cf/google/gemma-4-26b-a4b-it": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cloudflare Workers AI|@cf/zai-org/glm-4.7-flash": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cloudflare Workers AI|@cf/mistralai/mistral-small-3.1-24b-instruct": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Cloudflare Workers AI|@cf/deepseek-ai/deepseek-r1-distill-qwen-32b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Cloudflare Workers AI|61a6cddcfe": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|Gonka Broker": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Gonka Broker|MiniMaxAI/MiniMax-M2.7": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Gonka Broker|deepseek-ai/DeepSeek-V4-Flash-0731": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Gonka Broker|zai-org/GLM-5.3-Flash": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Gonka Broker|BAAI/bge-m3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Gonka Broker|64fcf52bf3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|Groq": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Groq|openai/gpt-oss-120b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Groq|openai/gpt-oss-20b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Groq|qwen/qwen3.8-27b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Groq|b75b5f436a": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|Kilo Code": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|nvidia/nemotron-3-ultra-550b-a55b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|cohere/north-mini-code:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|openrouter/free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|nvidia/nemotron-3.5-lightning:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|liquid/lfm-2.5-2.6b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|kilo-auto/free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|dots-studio/dots-3-note-preview:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|recursive/flint-v1.0:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|xingchen-agi/xing4.0-29b-a4b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|nvidia/nemotron-3.5-super-vl:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|reflection/beam-free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|Kilo Code|stealth/glyph-cluster": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|Kilo Code|c549694440": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|LLM7.io": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|LLM7.io|gpt-oss:20b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|LLM7.io|mistral-Nemo-Instruct-2407": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|LLM7.io|nemotron-3-nano:30b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|LLM7.io|codestral-latest": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|LLM7.io|4ebc9a96a1": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|ModelScope": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|ModelScope|Qwen/Qwen3.5-35B-A3B": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|ModelScope|Qwen/Qwen3.5-27B": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|ModelScope|eaa237e56f": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|NVIDIA NIM": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|NVIDIA NIM|google/gemma-4-31b-it": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|NVIDIA NIM|nvidia/nemotron-3-ultra-550b-a55b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|NVIDIA NIM|openai/gpt-oss-20b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|NVIDIA NIM|f89f6011d7": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|OpenRouter": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|cohere/north-mini-code:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|google/gemma-4-26b-a4b-it:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|google/gemma-4-31b-it:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|dots-studio/dots-3-note-preview:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|liquid/lfm-2.5-2.6b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|nvidia/nemotron-3.5-lightning:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|thinkingmachines/inkling:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|nvidia/nemotron-3-ultra-550b-a55b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|recursive/flint-v1.0:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|xingchen-agi/xing4.0-29b-a4b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|nvidia/nemotron-3.5-super-vl:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OpenRouter|thinkingmachines/inkling-small:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|OpenRouter|2df38a97ae": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|OVHcloud AI Endpoints": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|Qwen3.5-397B-A17B": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|gpt-oss-120b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|gpt-oss-20b": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|Meta-Llama-3_3-70B-Instruct": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|Qwen3.8-27B": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|Qwen3.6-27B": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|Qwen3.5-9B": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|Qwen2.5-VL-72B-Instruct": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|Mistral-Small-3.2-24B-Instruct-2506": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|OVHcloud AI Endpoints|Mistral-Nemo-Instruct-2407": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|OVHcloud AI Endpoints|e3a1240e92": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|provider|SiliconFlow": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|SiliconFlow|tencent/Hunyuan-MT-7B": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|model|SiliconFlow|XingChenAGI/Xing4.0-29B": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "mnfst|quota|SiliconFlow|4a1d32b8eb": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|stealth/crouton-alpha": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.3-flashx-legal|1.62": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6.1-terra-pro|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6.1-terra-pro:batch|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6.1-terra|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6.1-terra:batch|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k3.1-pro|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|recursive/flint-v1.0:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-m3.1-flash|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v4.1-flash-1017|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|xingchen-agi/xing4.0-29b-a4b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|nvidia/nemotron-3.5-super-vl|0.65": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|nvidia/nemotron-3.5-super-vl:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-4-argon|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-4-argon:batch|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-haiku-5.5|0.6": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-haiku-5.5:batch|0.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-nano-banana-2.1|9.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-large-4-0|2.8": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6.1-sol-pro|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6.1-sol-pro:batch|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6.1-sol|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6.1-sol:batch|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-sonnet-5.5|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-sonnet-5.5:batch|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.3-prime|11.600000000000001": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.8-max-prime|16.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|cohere/command-a-plus|1.8": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-luna-pro|0.6": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-luna-pro:batch|0.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-luna|0.6": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-luna:batch|0.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-sol-pro|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-sol-pro:batch|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-sol|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-sol:batch|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-5.5|24.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-5.5:batch|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.7|8.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.7:batch|6.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.8-omni-flash|0.62": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.3-flashx|1.62": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v4.1-flash|0.545": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v4.1-flash:batch|0.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-astra|60.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-astra:batch|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-astra-pro|60.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-6-astra-pro:batch|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.8-max-0902|8.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.8-flash|4.95": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.8-flash:batch|2.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-fable-5.1|60.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-fable-5.1:batch|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.8-flash|0.62": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.3-flash|0.1265": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.3-flash:batch|0.22999999999999998": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v4-flash-vision-exp|0.8624": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.3|3.68": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.3:batch|2.45": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.8-27b|2.025": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|dots-studio/dots-3-note-preview:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.7-flash|4.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.7-flash:batch|2.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.8-2.4t-a95b|8.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v4-pro-0813|4.715": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.6|8.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.6:batch|6.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|liquid/lfm-2.5-2.6b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|nvidia/nemotron-3.5-lightning|0.27": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|nvidia/nemotron-3.5-lightning:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v4-flash-0731|0.359": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.7-flash|0.16": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-5|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-5:batch|15.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.6-flash|4.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.6-flash:batch|2.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.5-flash-lite|2.8": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.5-flash-lite:batch|1.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k3|16.192": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k3:batch|13.68": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-luna-pro|1.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-luna-pro:batch|0.7": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-luna|1.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-luna:batch|0.7": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-terra-pro|14.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-terra-pro:batch|7.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-terra|14.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-terra:batch|7.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-sol-pro|24.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-sol-pro:batch|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-sol|24.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.6-sol:batch|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.5|8.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-sonnet-5|12.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-sonnet-5:batch|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-flash-lite-image|1.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-flash-image|3.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3-pro-image|14.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|cohere/north-mini-code:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.2|6.806": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k2.7-code|4.1": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-fable-5|60.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-fable-5:batch|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|nvidia/nemotron-3.5-content-safety|0.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|nvidia/nemotron-3.5-content-safety:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|nvidia/nemotron-3-ultra-550b-a55b|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|nvidia/nemotron-3-ultra-550b-a55b:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.7-plus|1.6": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.7-plus:batch|1.1500000000000001": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-m3|1.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.8|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.8:batch|15.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.7-max|5.9": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-build-0.1|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.5-flash|10.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.5-flash:batch|5.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-flash-lite|1.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-flash-lite:batch|0.875": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-chat-latest|35.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.3|3.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.3:batch|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-medium-3-5|9.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-medium-3-5:batch|4.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.5-plus-20260420|2.1": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.6-flash|1.3125": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.6-35b-a3b|1.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.6-27b|3.1500000000000004": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.5-pro|210.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.5-pro:batch|105.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.5|35.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.5:batch|17.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v4-pro|4.800000000000001": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v4-flash|0.273": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4-image-2|23.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k2.6|4.0600000000000005": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.7|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.7:batch|15.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5.1|5.800000000000001": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemma-4-26b-a4b-it|0.296": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|google/gemma-4-26b-a4b-it:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemma-4-31b-it|0.6000000000000001": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|google/gemma-4-31b-it:free": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.6-plus|2.275": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5v-turbo|5.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.20-multi-agent|3.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|x-ai/grok-4.20|3.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|google/lyria-3-pro-preview": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|google/lyria-3-clip-preview": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-m2.7|1.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4-nano|1.45": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4-nano:batch|0.725": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4-mini|5.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4-mini:batch|2.625": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-small-2603|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5-turbo|5.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|nvidia/nemotron-3-super-120b-a12b|2.6999999999999997": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.5-9b|0.42000000000000004": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4-pro|210.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4-pro:batch|105.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4|17.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.4:batch|8.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-flash-lite-preview|1.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-flash-image-preview|3.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.5-35b-a3b|1.1400000000000001": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.5-27b|2.8600000000000003": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.5-122b-a10b|2.34": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.5-flash-02-23|0.325": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-pro-preview-customtools|14.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.3-codex|15.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-pro-preview|14.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3.1-pro-preview:batch|7.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-sonnet-4.6|18.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-sonnet-4.6:batch|9.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.5-plus-02-15|1.82": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3.5-397b-a17b|4.1": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-m2.5|1.22": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-5|4.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.6|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.6:batch|15.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-coder-next|0.92": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k2.5|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-m2-her|1.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-audio|12.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-audio-mini|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-4.7-flash|0.4605": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.2-codex|15.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-m2.1|1.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-4.7|2.8000000000000003": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3-flash-preview|3.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3-flash-preview:batch|1.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|nvidia/nemotron-3-nano-30b-a3b|0.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.2-chat|15.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.2-pro|189.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.2-pro:batch|94.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.2|15.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.2:batch|7.875": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/devstral-2512|2.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-4.6v|1.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.1-codex-max|11.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|amazon/nova-2-lite-v1|2.8": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/ministral-14b-2512|0.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/ministral-8b-2512|0.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/ministral-3b-2512|0.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-large-2512|2.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v3.2|0.64": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.5|30.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.5:batch|15.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-3-pro-image-preview|14.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.1|11.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.1:batch|5.625": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.1-codex|11.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5.1-codex-mini|2.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k2-thinking|3.1": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|amazon/nova-premier-v1|15.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/voxtral-small-24b-2507|0.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-oss-safeguard-20b|0.375": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-m2|1.275": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5-image-mini|4.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-haiku-4.5|6.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-haiku-4.5:batch|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-vl-8b-instruct|1.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5-image|20.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-2.5-flash-image|2.8": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-vl-30b-a3b-thinking|1.29": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-vl-30b-a3b-instruct|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5-pro|135.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5-pro:batch|67.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-4.6|2.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-sonnet-4.5|18.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-sonnet-4.5:batch|9.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v3.2-exp|0.6799999999999999": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-vl-235b-a22b-instruct|2.11": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-v3.1-terminus|1.27": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-coder-flash|1.17": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-next-80b-a3b-instruct|1.2000000000000002": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k2-0905|3.1": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-chat-v3.1|1.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-medium-3.1|2.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-4.5v|2.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5|11.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5:batch|5.625": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5-mini|2.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5-mini:batch|1.125": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5-nano|0.45": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-5-nano:batch|0.225": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-oss-120b|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-oss-120b:batch|0.16560000000000002": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-oss-20b|0.16": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-oss-20b:batch|0.136": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.1|90.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|anthropic/claude-opus-4.1:batch|45.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/codestral-2508|1.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-coder-30b-a3b-instruct|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-30b-a3b-instruct-2507|0.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-4.5|2.8000000000000003": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|z-ai/glm-4.5-air|0.98": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-235b-a22b-thinking-2507|3.95": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-coder|1.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-2.5-flash-lite|0.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-235b-a22b-2507|0.9400000000000001": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|moonshotai/kimi-k2|2.8699999999999997": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-small-3.2-24b-instruct|0.275": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-m1|2.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-2.5-flash|2.8": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-2.5-pro|11.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/o3-pro|100.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemini-2.5-pro-preview|11.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-r1-0528|2.65": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-medium-3|2.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|meta-llama/llama-guard-4-12b|0.36": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-30b-a3b|0.62": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-14b|0.36": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen3-32b|0.36000000000000004": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/o3|10.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/o3:batch|5.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/o4-mini:batch|2.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4.1|10.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4.1:batch|5.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4.1-mini|2.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4.1-mini:batch|1.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4.1-nano|0.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4.1-nano:batch|0.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|meta-llama/llama-4-maverick|0.84": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|meta-llama/llama-4-scout|0.4": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-chat-v3-0324|1.43": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-small-3.1-24b-instruct|0.906": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemma-3-4b-it|0.15000000000000002": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemma-3-12b-it|0.2": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|cohere/command-a|12.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemma-3-27b-it|0.43": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-saba|0.8": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen2.5-vl-72b-instruct|1.8": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen-plus|1.04": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/o3-mini:batch|2.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-small-24b-instruct-2501|0.13": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|minimax/minimax-01|1.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|microsoft/phi-4|0.21000000000000002": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|deepseek/deepseek-chat|1.2861": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|cohere/command-r7b-12-2024|0.1875": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|meta-llama/llama-3.3-70b-instruct|0.42000000000000004": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|amazon/nova-lite-v1|0.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|amazon/nova-micro-v1|0.17500000000000002": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|amazon/nova-pro-v1|4.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4o-2024-11-20|12.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-large-2407|8.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen-2.5-coder-32b-instruct|1.6600000000000001": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen-2.5-7b-instruct|0.30000000000000004": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|meta-llama/llama-3.2-1b-instruct|0.228": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|meta-llama/llama-3.2-3b-instruct|0.3859": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|qwen/qwen-2.5-72b-instruct|0.76": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|cohere/command-r-08-2024|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|cohere/command-r-plus-08-2024|12.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4o-2024-08-06|12.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|meta-llama/llama-3.1-70b-instruct|1.44": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|meta-llama/llama-3.1-8b-instruct|0.13": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-nemo|0.059": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4o-mini|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4o-mini-2024-07-18|0.75": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4o-mini:batch|0.375": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|google/gemma-2-27b-it|1.3": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4o|12.5": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4o-2024-05-13|20.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4o:batch|6.25": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mixtral-8x22b-instruct|8.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4-turbo:batch|20.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|mistralai/mistral-large|8.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-3.5-turbo-0613|3.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-3.5-turbo-16k|7.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|price|openai/gpt-4|90.0": {
+   "last": "2026-11-04T22:33:41"
+  },
+  "or|free|openrouter/free": {
+   "last": "2026-11-04T22:33:41"
+  }
+ },
+ "updated": "2026-11-04T22:33:44"
+}
