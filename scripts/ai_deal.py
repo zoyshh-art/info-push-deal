@@ -1,38 +1,42 @@
 # coding=utf-8
-"""AI 免费额度 / 好价监控 → PushPlus
+"""AI 免费额度 / 平台活动监控 → PushPlus
 
-盯两个结构化源（都不需要抓网页、不依赖国内可达性）：
+只推「哪里能白嫖」和「哪家活动变了」，不推模型降价、不发教程水文。
 
-1. GitHub · mnfst/awesome-free-llm-apis
-   「永久免费 LLM API」清单，12k+ star，维护活跃（2026-11 仍在更新）。
-   仓库根目录的 data.json 是结构化数据，比 README 可靠得多：
-     { lastUpdated, providers: [{name, country, flag, url, description, models: [...]}] }
-   监控三类变化：新增服务商、新增模型、免费额度/限流描述变化。
+三个源，按信号价值排序：
 
-2. OpenRouter · /api/v1/models
-   453 个模型的实时价格。监控两类变化：
-   - 新增完全免费模型（prompt 与 completion 单价都为 0）
-   - 主流厂商模型降价 ≥25%
+1. ★ rockbenben/free-llm-intel · llm-intel-changelog.md
+   每天巡检 70 家厂商（OpenAI / Anthropic / Gemini / Groq / Mistral / DeepSeek /
+   通义 / Kimi / 智谱 / 豆包 / 硅基流动 …）的官方博客与定价页，把「免费额度事实变化」
+   写成带前值→后值的中文摘要。这是唯一能持续产出「最新免费 token / 活动」的源，
+   而且是官方来源核实过的，不是社区传言。
+   配套 llm-intel.yaml 提供每家厂商的官方 homepage。
 
-为什么只盯这两个：
-- 都是机器可读的结构化数据，不靠解析网页，不会因为改版就失效
-- 信号密度高：HN / Reddit 关键词搜索实测噪音极大（全是无关 Show HN），不做
-- LiteLLM 价格库文件超 1MB，GitHub contents API 取不到正文，且含大量冷门模型，噪音大
+2. GitHub · mnfst/awesome-free-llm-apis · data.json
+   「永久免费 LLM API」清单，12k+ star。结构化数据，监控新增服务商 / 新增模型 /
+   额度描述变化。变化慢，但一旦变就是长期可用的新免费层。
 
-刻意不碰的东西：国内「API 中转站」「号池」。这类按转售价兜售官方额度的生意，
-2026 年已被多地警方以非法获取计算机信息系统数据立案（有站长被刑拘的公开报道），
-且账号随时封禁、数据经第三方转发。本脚本只监控**厂商官方**的免费层与公开定价。
+3. OpenRouter · /api/v1/models
+   453 个模型实时价格，只取「完全免费」（输入输出单价都为 0）的模型增减。
+
+刻意不做：
+- 模型降价。用户明确说这类信息没价值——而且 OpenRouter 是聚合器，价格随上游
+  路由分钟级抖动（实测 gpt-oss-120b 在 $0.113 和 $0.75 之间来回跳），噪音远大于信号。
+- 国内「API 中转站」「号池」。2026 年多地警方以非法获取计算机信息系统数据立案，
+  公开报道有站长被刑拘；账号随时封禁、数据经第三方转发。只监控厂商官方渠道。
+- HN / Reddit 关键词搜索。实测噪音极大（搜 free API credits 返回的全是无关 Show HN）。
 
 推送规则：
-- 只推「新出现」的信息，同一个 key 推过就不再推（这类信息没有"降价抢购"时效性）
-- 首次运行只记基线不推送
-- 免费额度描述变化按内容哈希判定，改一个字也算新事件
+- 只推新出现的变化，同一 key 推过就不再推
+- intel 源按「厂商 + 日期」去重，同一天同一家最多一条，避免反复修订刷屏
+- 首次接入 intel 源时只记基线，不把 150 条历史一次性倒出来
 
 环境变量：PUSHPLUS_TOKEN（必填）
           PUSHPLUS_CHANNELS（默认 wechat）
 用法：python scripts/ai_deal.py [--dry-run | --test]
 """
 
+import base64
 import hashlib
 import json
 import os
@@ -63,25 +67,20 @@ def log(msg: str) -> None:
 # ──────────────────────────── 配置 ────────────────────────────
 
 GH_API = "https://api.github.com"
+INTEL_REPO = "rockbenben/free-llm-intel"
 MNFST_REPO = "mnfst/awesome-free-llm-apis"
-MNFST_FILE = "data.json"
 OPENROUTER_MODELS = "https://openrouter.ai/api/v1/models"
 
 STATE_PATH = Path(__file__).resolve().parent.parent / "data" / "ai_deal_state.json"
-SCHEMA = 1
+SCHEMA = 2                     # 2 = 接入 intel 源，旧状态自动补基线
 
 PUSH_URL = "https://www.pushplus.plus/send"
-MAX_PUSH = 12                  # 单条消息最多条目数
-STATE_KEEP = 3000              # 状态保留条数
+MAX_PUSH = 12
+STATE_KEEP = 3000
+SUMMARY_MAX = 150              # 摘要截断长度（中文字符）
 
-# 降价只盯主流厂商，453 个模型里有大量冷门微调版本，全盯会变成噪音
-MAJOR_PREFIXES = (
-    "openai/", "anthropic/", "google/", "deepseek/", "qwen/", "meta-llama/",
-    "mistralai/", "x-ai/", "moonshotai/", "z-ai/", "minimax/", "nvidia/",
-    "cohere/", "amazon/", "microsoft/",
-)
-PRICE_DROP_RATIO = 0.25        # 降价 ≥25% 才算"划算"，小幅波动不打扰
-MIN_OLD_PRICE = 0.05           # 旧价低于 $0.05/百万 token 的不看（已经很便宜，降 25% 无感）
+# 首次接入 intel 源时打这个标记，避免把历史 150 条一次性推出去
+INTEL_FLAG = "meta|intel_baselined"
 
 HEADERS = {"Accept": "application/vnd.github+json", "User-Agent": "ai-deal-watch"}
 
@@ -89,7 +88,6 @@ HEADERS = {"Accept": "application/vnd.github+json", "User-Agent": "ai-deal-watch
 # ──────────────────────────── 状态 ────────────────────────────
 
 def load_state() -> dict:
-    """返回 {"entries": {key: {"last": iso}}}；损坏或旧版本视为首次运行"""
     try:
         d = json.loads(STATE_PATH.read_text(encoding="utf-8"))
         if d.get("schema") == SCHEMA and isinstance(d.get("entries"), dict):
@@ -100,7 +98,6 @@ def load_state() -> dict:
 
 
 def save_state(entries: dict) -> None:
-    # 只保留最近 STATE_KEEP 条，防止无限增长
     kept = dict(sorted(entries.items(),
                        key=lambda kv: kv[1].get("last", ""), reverse=True)[:STATE_KEEP])
     try:
@@ -123,22 +120,108 @@ def mark(entries: dict, key: str, now: datetime) -> None:
     entries[key] = {"last": now.isoformat(timespec="seconds")}
 
 
-# ──────────────────────────── 源一：免费额度清单 ────────────────────────────
-
-def fetch_mnfst() -> dict:
-    """读 mnfst 的 data.json（走 api.github.com，raw.githubusercontent 本地不通）"""
-    url = f"{GH_API}/repos/{MNFST_REPO}/contents/{MNFST_FILE}"
-    r = requests.get(url, headers=HEADERS, timeout=40)
+def gh_file(repo: str, path: str) -> str:
+    """读 GitHub 仓库文件正文（raw.githubusercontent 本地不通，必须走 contents API）"""
+    r = requests.get(f"{GH_API}/repos/{repo}/contents/{path}",
+                     headers=HEADERS, timeout=40)
     r.raise_for_status()
     j = r.json()
     if "content" not in j:
-        raise RuntimeError("contents API 未返回正文（文件可能过大）")
-    import base64
-    return json.loads(base64.b64decode(j["content"]).decode("utf-8"))
+        raise RuntimeError(f"{path} 过大，contents API 未返回正文")
+    return base64.b64decode(j["content"]).decode("utf-8")
 
+
+# ──────────────────── 源一：免费政策变化（主源） ────────────────────
+
+def parse_vendors(yaml_txt: str) -> dict:
+    """从 llm-intel.yaml 提取 id → {brand, homepage}。
+    结构固定（- id / brand / products / homepage），手写状态机比引 PyYAML 省事。"""
+    out, cur = {}, {}
+    for line in yaml_txt.splitlines():
+        s = line.strip()
+        if s.startswith("- id:"):
+            if cur.get("id"):
+                out[cur["id"]] = cur
+            cur = {"id": s.split(":", 1)[1].strip()}
+        elif s.startswith("brand:") and cur:
+            cur["brand"] = s.split(":", 1)[1].strip().strip('"')
+        elif s.startswith("homepage:") and cur:
+            cur["homepage"] = s.split(":", 1)[1].strip().strip('"')
+    if cur.get("id"):
+        out[cur["id"]] = cur
+    return out
+
+
+def parse_changelog(md: str) -> list[dict]:
+    """解析「## 日期 / ### 厂商（id） / - 摘要：…」结构。
+
+    同一天同一厂商可能有多段（多次修订），只保留最后一段——那是最终结论。
+    """
+    recs: dict[tuple, dict] = {}
+    date = prov = prov_id = summary = None
+
+    def flush():
+        if date and prov_id and summary:
+            recs[(prov_id, date)] = {"date": date, "id": prov_id,
+                                     "name": prov, "summary": summary}
+
+    for line in md.splitlines():
+        s = line.rstrip()
+        if s.startswith("## "):
+            flush()
+            date = s[3:].strip()
+            prov = prov_id = summary = None
+        elif s.startswith("### "):
+            flush()
+            summary = None
+            head = s[4:].strip()
+            m = re.match(r"(.+?)（`([^`]+)`）", head)
+            if m:
+                prov, prov_id = m.group(1).strip(), m.group(2).strip()
+            else:
+                prov, prov_id = head, re.sub(r"\s+", "_", head.lower())
+        elif re.match(r"-\s*摘要[:：]", s):
+            # 只剥掉「- 摘要：」这个前缀，不能按冒号 split —— 摘要正文里有
+            # 「2026-11-01 00:00」这种时间，按英文冒号切会把后半截吃掉
+            summary = re.sub(r"^-\s*摘要[:：]\s*", "", s).strip()
+    flush()
+
+    rows = sorted(recs.values(), key=lambda r: r["date"], reverse=True)
+    return rows
+
+
+def parse_intel(rows: list[dict], vendors: dict, entries: dict, now: datetime) -> list[dict]:
+    """厂商-天 去重：同一天同一家只推一条"""
+    # 首次接入：只记基线，不倒历史
+    if INTEL_FLAG not in entries:
+        for r in rows:
+            mark(entries, f"intel|{r['id']}|{r['date']}", now)
+        mark(entries, INTEL_FLAG, now)
+        log(f"[intel] 首次接入，记基线 {len(rows)} 条（不推送）")
+        return []
+
+    out = []
+    for r in rows:
+        k = f"intel|{r['id']}|{r['date']}"
+        if k in entries:
+            continue
+        mark(entries, k, now)
+        v = vendors.get(r["id"], {})
+        text = r["summary"]
+        if len(text) > SUMMARY_MAX:
+            text = text[:SUMMARY_MAX].rstrip() + "…"
+        out.append({
+            "kind": "policy", "key": k,
+            "title": f"{v.get('brand') or r['name']} · {r['date']}",
+            "meta": text,
+            "url": v.get("homepage", ""),
+        })
+    return out
+
+
+# ──────────────────── 源二：永久免费层清单 ────────────────────
 
 def quota_hash(provider: dict) -> str:
-    """额度描述指纹：description 里写着限流/额度，改了就是新事件"""
     raw = f"{provider.get('description', '')}|{provider.get('baseUrl', '')}"
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:10]
 
@@ -149,11 +232,9 @@ def parse_mnfst(data: dict, entries: dict, now: datetime) -> list[dict]:
         name = (p.get("name") or "").strip()
         if not name:
             continue
-        flag = p.get("flag") or ""
-        country = p.get("country") or ""
+        flag, country = p.get("flag") or "", p.get("country") or ""
         link = p.get("url") or ""
 
-        # 1) 新服务商
         pk = f"mnfst|provider|{name}"
         if pk not in entries:
             mark(entries, pk, now)
@@ -170,7 +251,6 @@ def parse_mnfst(data: dict, entries: dict, now: datetime) -> list[dict]:
             mark(entries, f"mnfst|quota|{name}|{quota_hash(p)}", now)
             continue
 
-        # 2) 新增模型
         for m in p.get("models") or []:
             mid = (m.get("id") or "").strip()
             if not mid:
@@ -186,7 +266,6 @@ def parse_mnfst(data: dict, entries: dict, now: datetime) -> list[dict]:
                     "url": link,
                 })
 
-        # 3) 额度/限流描述变化
         qk = f"mnfst|quota|{name}|{quota_hash(p)}"
         if not any(k.startswith(f"mnfst|quota|{name}|") for k in entries):
             mark(entries, qk, now)
@@ -201,23 +280,16 @@ def parse_mnfst(data: dict, entries: dict, now: datetime) -> list[dict]:
     return out
 
 
-# ──────────────────────────── 源二：OpenRouter ────────────────────────────
+# ──────────────────── 源三：OpenRouter 免费模型 ────────────────────
 
 def _price_per_million(v) -> float:
-    """OpenRouter 的 pricing 是 $/token 字符串 → 换算成 $/百万 token"""
     try:
         f = float(v)
     except (TypeError, ValueError):
         return -1.0
-    if f < 0:                     # -1 表示动态定价，跳过
+    if f < 0:                     # -1 表示动态定价
         return -1.0
     return round(f * 1_000_000, 4)
-
-
-def fetch_openrouter() -> list[dict]:
-    r = requests.get(OPENROUTER_MODELS, timeout=40)
-    r.raise_for_status()
-    return r.json().get("data") or []
 
 
 def parse_openrouter(models: list[dict], entries: dict, now: datetime) -> list[dict]:
@@ -229,93 +301,38 @@ def parse_openrouter(models: list[dict], entries: dict, now: datetime) -> list[d
         pricing = m.get("pricing") or {}
         pin = _price_per_million(pricing.get("prompt"))
         pout = _price_per_million(pricing.get("completion"))
-        if pin < 0 or pout < 0:
+        if pin != 0 or pout != 0:
             continue
-
-        # 1) 新增免费模型
-        fk = f"or|free|{mid}"
-        if pin == 0 and pout == 0:
-            if fk not in entries:
-                mark(entries, fk, now)
-                ctx = m.get("context_length") or 0
-                out.append({
-                    "kind": "free", "key": fk,
-                    "title": f"OpenRouter 免费模型：{mid}",
-                    "meta": f"上下文 {ctx // 1000}K · 输入输出均 $0",
-                    "url": f"https://openrouter.ai/{mid}",
-                })
+        k = f"or|free|{mid}"
+        if k in entries:
             continue
-
-        # 2) 主流模型降价
-        if not mid.startswith(MAJOR_PREFIXES):
-            continue
-        cur = pin + pout
-        if cur <= 0 or cur < MIN_OLD_PRICE:
-            continue
-        # 用「最近一次记录的价格」比对。不能随便取一条：价格可能降了又涨回去，
-        # 取到更早那条低价会把涨价误判成降价。
-        pk = f"or|price|{mid}|{cur}"
-        pend_k = f"or|pend|{mid}"
-        if pk in entries:
-            entries.pop(pend_k, None)
-            continue
-        old, old_ts = None, ""
-        for k, v in entries.items():
-            if not k.startswith(f"or|price|{mid}|"):
-                continue
-            ts = v.get("last", "")
-            if ts <= old_ts:
-                continue
-            try:
-                cand = float(k.rsplit("|", 1)[1])
-            except ValueError:
-                continue
-            old, old_ts = cand, ts
-        if old is None or cur >= old:
-            mark(entries, pk, now)      # 首次见到该模型只记基线；涨价不算羊毛
-            entries.pop(pend_k, None)
-            continue
-        if cur > old * (1 - PRICE_DROP_RATIO):
-            mark(entries, pk, now)      # 降幅不够，静默记下
-            entries.pop(pend_k, None)
-            continue
-
-        # 降价 ≥25%：先挂起，下一轮仍是这个价才推。
-        # 原因：OpenRouter 是聚合器，同一模型在不同上游供应商间切路由，
-        # 实测 openai/gpt-oss-120b 在 $0.113 和 $0.75 之间分钟级来回跳，
-        # 单次采样会把路由抖动当成降价。两轮（≈2 小时）都确认才算真降。
-        p = entries.get(pend_k)
-        if p and abs(float(p.get("price", 0)) - cur) <= max(cur * 0.02, 0.001):
-            mark(entries, pk, now)
-            entries.pop(pend_k, None)
-            out.append({
-                "kind": "drop", "key": pk,
-                "title": f"{mid} 降价 {(1 - cur / old) * 100:.0f}%",
-                "meta": f"${old:g} → ${cur:g} / 百万 token（输入+输出合计）",
-                "url": f"https://openrouter.ai/{mid}",
-            })
-        else:
-            entries[pend_k] = {"price": cur, "base": old,
-                               "last": now.isoformat(timespec="seconds")}
+        mark(entries, k, now)
+        ctx = m.get("context_length") or 0
+        out.append({
+            "kind": "free", "key": k,
+            "title": f"OpenRouter 免费模型：{mid}",
+            "meta": f"上下文 {ctx // 1000}K · 输入输出均 $0",
+            "url": f"https://openrouter.ai/{mid}",
+        })
     return out
 
 
 # ──────────────────────────── 推送 ────────────────────────────
 
 SECTION = {
+    "policy":   "📢 免费政策变化",
     "provider": "🎁 新增免费服务商",
     "quota":    "📈 免费额度变化",
     "model":    "🆕 免费清单新增模型",
     "free":     "🆓 OpenRouter 免费模型",
-    "drop":     "💰 价格下调",
 }
+ORDER = ["policy", "provider", "quota", "model", "free"]
 
 
 def build_text(items: list[dict]) -> str:
     now = now_cn().strftime("%m-%d %H:%M")
-    lines = [f"**🤖 AI 免费额度 / 好价 · {now} · 新 {len(items)} 条**", ""]
-    order = ["provider", "quota", "free", "model", "drop"]
-    for kind in order:
+    lines = [f"**🤖 AI 免费额度 / 活动 · {now} · 新 {len(items)} 条**", ""]
+    for kind in ORDER:
         rows = [x for x in items if x["kind"] == kind]
         if not rows:
             continue
@@ -326,25 +343,25 @@ def build_text(items: list[dict]) -> str:
             if x.get("meta"):
                 meta.append(x["meta"])
             if x.get("url"):
-                meta.append(f"[领取/查看]({x['url']})")
+                meta.append(f"[官网]({x['url']})")
             lines += ["　".join(meta), ""]
     lines += [
         "---",
-        "来源：mnfst/awesome-free-llm-apis（永久免费层清单）· OpenRouter 实时定价",
-        "只推厂商官方免费层与公开降价，不涉及任何第三方转售/号池",
-        "每小时巡检一次 · 同类信息只推一次",
+        "来源：free-llm-intel（每天巡检 70 家厂商官方页）· awesome-free-llm-apis · OpenRouter",
+        "只推厂商官方免费额度与政策变化，不涉及第三方转售/号池",
+        "每小时巡检 · 同一条变化只推一次",
     ]
     return "\n".join(lines)
 
 
 def make_title(items: list[dict]) -> str:
-    n_free = sum(1 for x in items if x["kind"] in ("provider", "free", "model"))
-    n_drop = sum(1 for x in items if x["kind"] == "drop")
-    if n_drop and not n_free:
-        return f"💰【AI 降价】新 {len(items)} 条"
-    if n_free and not n_drop:
-        return f"🎁【AI 免费额度】新 {len(items)} 条"
-    return f"🤖【AI 羊毛】免费 {n_free} · 降价 {n_drop}"
+    n_policy = sum(1 for x in items if x["kind"] in ("policy", "quota"))
+    n_new = len(items) - n_policy
+    if n_policy and not n_new:
+        return f"📢【AI 免费政策】新 {n_policy} 条变化"
+    if n_new and not n_policy:
+        return f"🎁【AI 免费额度】新 {n_new} 条"
+    return f"🤖【AI 羊毛】政策 {n_policy} · 新增 {n_new}"
 
 
 def push(token: str, title: str, content: str) -> None:
@@ -379,12 +396,23 @@ def main() -> int:
     entries = load_state()
     first_run = not entries
     now = now_cn()
-
     items: list[dict] = []
     failed = 0
 
+    # 源一：免费政策变化
     try:
-        data = fetch_mnfst()
+        md = gh_file(INTEL_REPO, "llm-intel-changelog.md")
+        vendors = parse_vendors(gh_file(INTEL_REPO, "llm-intel.yaml"))
+        rows = parse_changelog(md)
+        log(f"[intel] {len(rows)} 条厂商-天记录 · {len(vendors)} 家厂商档案")
+        items += parse_intel(rows, vendors, entries, now)
+    except (requests.RequestException, ValueError, RuntimeError) as e:
+        failed += 1
+        log(f"[intel] 抓取失败: {type(e).__name__} {e}")
+
+    # 源二：永久免费层清单
+    try:
+        data = json.loads(gh_file(MNFST_REPO, "data.json"))
         log(f"[mnfst] {len(data.get('providers') or [])} 个服务商 · "
             f"清单更新于 {data.get('lastUpdated', '?')}")
         items += parse_mnfst(data, entries, now)
@@ -392,19 +420,19 @@ def main() -> int:
         failed += 1
         log(f"[mnfst] 抓取失败: {type(e).__name__} {e}")
 
+    # 源三：OpenRouter 免费模型
     try:
-        models = fetch_openrouter()
-        free_n = sum(1 for m in models
-                     if _price_per_million((m.get("pricing") or {}).get("prompt")) == 0
-                     and _price_per_million((m.get("pricing") or {}).get("completion")) == 0)
-        log(f"[openrouter] {len(models)} 个模型 · 其中完全免费 {free_n} 个")
+        r = requests.get(OPENROUTER_MODELS, timeout=40)
+        r.raise_for_status()
+        models = r.json().get("data") or []
+        log(f"[openrouter] {len(models)} 个模型")
         items += parse_openrouter(models, entries, now)
     except (requests.RequestException, ValueError) as e:
         failed += 1
         log(f"[openrouter] 抓取失败: {type(e).__name__} {e}")
 
-    if failed == 2:
-        log("两个源都失败，退出（疑似网络/接口异常）")
+    if failed == 3:
+        log("三个源都失败，退出（疑似网络/接口异常）")
         return 1
 
     if first_run:
@@ -414,10 +442,9 @@ def main() -> int:
 
     if not items:
         save_state(entries)
-        log("没有新条目")
+        log("没有新变化")
         return 0
 
-    # 同一批内按 key 去重
     seen, uniq = set(), []
     for x in items:
         if x["key"] in seen:
