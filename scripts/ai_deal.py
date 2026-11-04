@@ -255,7 +255,9 @@ def parse_openrouter(models: list[dict], entries: dict, now: datetime) -> list[d
         # 用「最近一次记录的价格」比对。不能随便取一条：价格可能降了又涨回去，
         # 取到更早那条低价会把涨价误判成降价。
         pk = f"or|price|{mid}|{cur}"
+        pend_k = f"or|pend|{mid}"
         if pk in entries:
+            entries.pop(pend_k, None)
             continue
         old, old_ts = None, ""
         for k, v in entries.items():
@@ -269,16 +271,32 @@ def parse_openrouter(models: list[dict], entries: dict, now: datetime) -> list[d
             except ValueError:
                 continue
             old, old_ts = cand, ts
-        mark(entries, pk, now)
         if old is None or cur >= old:
-            continue              # 首次见到该模型（只记基线），或价格没降
-        if cur <= old * (1 - PRICE_DROP_RATIO):
+            mark(entries, pk, now)      # 首次见到该模型只记基线；涨价不算羊毛
+            entries.pop(pend_k, None)
+            continue
+        if cur > old * (1 - PRICE_DROP_RATIO):
+            mark(entries, pk, now)      # 降幅不够，静默记下
+            entries.pop(pend_k, None)
+            continue
+
+        # 降价 ≥25%：先挂起，下一轮仍是这个价才推。
+        # 原因：OpenRouter 是聚合器，同一模型在不同上游供应商间切路由，
+        # 实测 openai/gpt-oss-120b 在 $0.113 和 $0.75 之间分钟级来回跳，
+        # 单次采样会把路由抖动当成降价。两轮（≈2 小时）都确认才算真降。
+        p = entries.get(pend_k)
+        if p and abs(float(p.get("price", 0)) - cur) <= max(cur * 0.02, 0.001):
+            mark(entries, pk, now)
+            entries.pop(pend_k, None)
             out.append({
                 "kind": "drop", "key": pk,
                 "title": f"{mid} 降价 {(1 - cur / old) * 100:.0f}%",
                 "meta": f"${old:g} → ${cur:g} / 百万 token（输入+输出合计）",
                 "url": f"https://openrouter.ai/{mid}",
             })
+        else:
+            entries[pend_k] = {"price": cur, "base": old,
+                               "last": now.isoformat(timespec="seconds")}
     return out
 
 
