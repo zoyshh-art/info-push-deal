@@ -1021,6 +1021,8 @@ def main() -> int:
         except (requests.RequestException, ET.ParseError) as e:
             log(f"源 {name} 抓取失败: {type(e).__name__} {e}")
 
+    raw_total = len(deals) + len(news)   # 过滤前的原始条数：用于区分「没抓到」和「抓到但都不达标」
+
     if len(news) > 1:
         news = dedup_news(news)
 
@@ -1047,8 +1049,11 @@ def main() -> int:
         deals = kept
 
     if not deals and not news:
-        log("本轮无可推送条目（抓取为空或全部未达标），退出")
-        return 1
+        if raw_total == 0:
+            log("所有源都没拿到数据，退出（疑似网络/接口异常）")
+            return 1                      # 真故障才判失败
+        log(f"本轮 {raw_total} 条全部未达标，无可推送条目")
+        return 0                          # 没有好价是正常状态，不能让 workflow 变红
 
     entries = load_state()
     first_run = not STATE_PATH.exists() or not entries
