@@ -2,11 +2,14 @@
 """手机好价监控：指定机型优惠 → PushPlus（微信ClawBot，不发服务号）
 
 监测范围（型号白名单）：
-- OPPO Find X9 系列：X9 Pro / X9s Pro / X9 Ultra（基础款 Find X9 已停跟）
-- OPPO Find X10 系列：Find X10 / X10 Pro Max / X10 E / (未来 Ultra)
 - vivo X300 系列：X300 Pro / X300 Ultra（X300 / X300s / X300E 已停跟）
 - vivo X500 系列：X500 / X500 Pro / X500 Pro Max
 （前缀匹配，未来新增后缀自动覆盖；EXCLUDED_MODELS 里的基础款除外）
+
+已停跟（2026-11-04 按用户要求下线，配置保留、开关关闭）：
+- OPPO Find X9 / X10 系列 → OPPO_ENABLED = False（含官方商城盯价）
+- 兄弟 DCP-T435W / 爱普生 L335x 打印机 → PRINTER_ENABLED = False
+改回 True 即恢复，无需回滚代码。
 
 推送规则：
 - 好价判断：售价须低于官方【发行价】35% 以上才算好价（RRP_TABLE 发行价表），
@@ -21,7 +24,7 @@
 - 资讯（IT之家/快科技）按链接去重 + 跨来源标题归一化去重，只推一次；资讯无价格不做过滤
 - 首次运行仅记录基线不推送
 
-信息源（8 个）：
+信息源（7 个，已停跟的源不再注册）：
 1. 什么值得买 · 手机分类好价 https://www.smzdm.com/fenlei/shouji/
 2. 什么值得买 · 移动站好价榜 https://m.smzdm.com/top/shouji/（SSR，与 1 高度互补）
 3. 什么值得买 · 官方 API 手机分类流 api.smzdm.com/v1/list?category_id=165/389/4953
@@ -29,7 +32,7 @@
 5. 中关村在线 · 手机报价列表 detail.zol.com.cn（SSR 参考价，3 页约 140+ 款）
 6. 快科技 https://news.mydrivers.com/（机型促销资讯）
 7. IT之家 RSS https://www.ithome.com/rss/（机型促销资讯）
-8. OPPO 官方商城盯价 https://www.opposhop.cn（7 款目标机型直降第一手）
+（OPPO 官方商城盯价、什么值得买打印机关键词搜索：已随开关停跟）
 
 环境变量：PUSHPLUS_TOKEN（必填）
           PUSHPLUS_CHANNELS（默认 clawbot，即微信ClawBot；好价不推服务号）
@@ -91,6 +94,12 @@ SERIES_VARIANTS = {
 
 PUSH_URL = "https://www.pushplus.plus/send"
 
+# ── 监控开关（2026-11-04 按用户要求下线打印机与 OPPO）──
+# 置 False 即停止抓取与判定：抓取源不注册、型号不匹配、发行价不判定。
+# 配置表全部保留，改回 True 就恢复，不必回滚代码。
+PRINTER_ENABLED = False       # 兄弟 DCP-T435W / 爱普生 L335x（到手价区间）
+OPPO_ENABLED = False          # OPPO Find X9 / X10 系列（含官方商城盯价）
+
 # ── 型号白名单（前缀匹配，覆盖全系列含未来后缀） ──
 # 范围约定：仅 OPPO Find X9/X10 + vivo X300/X500 各系列（勿扩）
 MODEL_RE = re.compile(
@@ -119,6 +128,9 @@ def model_hit(title: str):
         return None
     m = MODEL_RE.search(title)
     if not m:
+        return None
+    # OPPO 已下线：匹配到的是 OPPO 系（Find X9/X10、OPPO X9/X10）就整体丢弃
+    if not OPPO_ENABLED and re.match(r"(?:OPPO|Find)", m.group(0), re.I):
         return None
     if full_model_id(title) in EXCLUDED_MODELS:
         return None
@@ -197,7 +209,7 @@ TOP_ROW_RE = re.compile(
 SMZDM_API = "https://api.smzdm.com/v1/list"
 SMZDM_API_H = {**UA, "Referer": "https://www.smzdm.com/"}
 SMZDM_API_CATS = {"手机通讯": 165, "手机": 389, "安卓手机": 4953}
-SMZDM_API_KEYWORDS = ["Find X9", "Find X10", "vivo X300", "vivo X500"]
+SMZDM_API_KEYWORDS = (["Find X9", "Find X10"] if OPPO_ENABLED else []) + ["vivo X300", "vivo X500"]
 
 # 源五：中关村在线手机报价列表（SSR：alt=机型(配置) / b.price-type=参考价）
 ZOL_URLS = [
@@ -337,6 +349,8 @@ def is_good_deal(item: dict) -> tuple[bool, str]:
     mid = full_model_id(title)
     if not mid:
         return True, ""                      # 识别不出具体机型 → 放行（宁多勿漏）
+    if not OPPO_ENABLED and re.match(r"x(?:9|10)", mid):
+        return False, "OPPO 监控已关闭"      # 兜底：上游漏网也不推
     table = RRP_TABLE.get(mid)
     if not table:
         return True, ""                      # 新机型暂无发行价 → 放行，待补表
@@ -892,10 +906,16 @@ def build_text(deals: list[dict], news: list[dict], batch_info: str = "") -> str
         lines += [f"**━━ 促销资讯 · {len(news)} 条 ━━**", ""]
         for i, n in enumerate(news, 1):
             lines += [f"**{i}. {n['title']}**", f"[查看详情]({n['url']})", ""]
+    scope = []
+    if PRINTER_ENABLED:
+        scope.append("打印机：兄弟 T435W ¥400–500 · 爱普生 L335x ¥400–600（到手价落入区间才推）")
+    phones_scope = "vivo X300 Pro/X300 Ultra · X500 系列"
+    if OPPO_ENABLED:
+        phones_scope = "Find X9 Pro/X9s Pro/X9 Ultra · Find X10 系列 · " + phones_scope
+    scope.append(f"手机：{phones_scope}（低于发行价 35%）")
     lines += [
         "---",
-        "手机：Find X9 Pro/X9s Pro/X9 Ultra · Find X10 系列 · vivo X300 Pro/X300 Ultra/X500 系列（低于发行价 35%）",
-        "打印机：兄弟 T435W ¥400–500 · 爱普生 L335x ¥400–600（到手价落入区间才推）",
+        *scope,
         "2 分钟一轮巡检 · 价格一变立即推 · 同机型同价 24 小时内不重复",
     ]
     return "\n".join(lines)
@@ -977,15 +997,25 @@ def main() -> int:
     token = os.environ.get("PUSHPLUS_TOKEN", "").strip()
 
     deals, news = [], []
-    for name, fn, bucket in (("smzdm", fetch_smzdm, deals),
-                             ("smzdm榜", fetch_smzdm_top, deals),
-                             ("smzdm分类API", fetch_smzdm_api_cat, deals),
-                             ("smzdm搜索API", fetch_smzdm_api_kw, deals),
-                             ("打印机", fetch_printer_deals, deals),
-                             ("ZOL", fetch_zol, deals),
-                             ("ithome", fetch_ithome, news),
-                             ("快科技", fetch_mydrivers, news),
-                             ("oppo官方", fetch_oppo_official, deals)):
+    sources = [("smzdm", fetch_smzdm, deals),
+               ("smzdm榜", fetch_smzdm_top, deals),
+               ("smzdm分类API", fetch_smzdm_api_cat, deals),
+               ("smzdm搜索API", fetch_smzdm_api_kw, deals),
+               ("ZOL", fetch_zol, deals),
+               ("ithome", fetch_ithome, news),
+               ("快科技", fetch_mydrivers, news)]
+    if PRINTER_ENABLED:
+        sources.insert(4, ("打印机", fetch_printer_deals, deals))
+    if OPPO_ENABLED:
+        sources.append(("oppo官方", fetch_oppo_official, deals))
+    for name, fn, bucket in sources:
+        try:
+            bucket.extend(fn())
+        except (requests.RequestException, ET.ParseError) as e:
+            log(f"源 {name} 抓取失败: {type(e).__name__} {e}")
+    off = [n for n, on in (("打印机", PRINTER_ENABLED), ("OPPO", OPPO_ENABLED)) if not on]
+    if off:
+        log(f"[开关] 已停跟：{'、'.join(off)}（配置保留，改回 True 即恢复）")
         try:
             bucket.extend(fn())
         except (requests.RequestException, ET.ParseError) as e:
@@ -1010,12 +1040,14 @@ def main() -> int:
             else:
                 log(f"[好价过滤] 淘汰 {why} | {d['title'][:44]}")
         if len(kept) != len(deals):
-            log(f"[好价过滤] {len(kept)}/{len(deals)} 条达标"
-                f"（手机 {n_phone} 条低于发行价 35% · 打印机 {n_print} 条落入价格区间）")
+            parts = [f"手机 {n_phone} 条低于发行价 35%"]
+            if PRINTER_ENABLED:
+                parts.append(f"打印机 {n_print} 条落入价格区间")
+            log(f"[好价过滤] {len(kept)}/{len(deals)} 条达标（{' · '.join(parts)}）")
         deals = kept
 
     if not deals and not news:
-        log("两个源都没拿到数据，退出")
+        log("本轮无可推送条目（抓取为空或全部未达标），退出")
         return 1
 
     entries = load_state()
