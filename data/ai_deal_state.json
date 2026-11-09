@@ -1,6 +1,9 @@
 {
  "schema": 2,
  "entries": {
+  "or|free|thinkingmachines/inkling-2-small:free": {
+   "last": "2026-11-10T06:24:52"
+  },
   "intel|morph_labs|2026-11-09": {
    "last": "2026-11-09T19:36:51"
   },
@@ -590,5 +593,5 @@
    "last": "2026-11-04T22:47:26"
   }
  },
- "updated": "2026-11-09T19:36:53"
+ "updated": "2026-11-10T06:24:54"
 }
