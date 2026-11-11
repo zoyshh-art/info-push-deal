@@ -1,6 +1,9 @@
 {
  "schema": 2,
  "entries": {
+  "or|free|baidu/ernie-5.5-flash-preview:free": {
+   "last": "2026-11-11T15:46:06"
+  },
   "or|free|thinkingmachines/inkling-2-small:free": {
    "last": "2026-11-10T06:24:52"
   },
@@ -593,5 +596,5 @@
    "last": "2026-11-04T22:47:26"
   }
  },
- "updated": "2026-11-10T06:24:54"
+ "updated": "2026-11-11T15:46:08"
 }
