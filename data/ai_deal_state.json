@@ -1,6 +1,9 @@
 {
  "schema": 2,
  "entries": {
+  "or|free|apodex/apodex-1.1-mini:free": {
+   "last": "2026-11-13T04:50:23"
+  },
   "or|free|baidu/ernie-5.5-flash-preview:free": {
    "last": "2026-11-11T15:46:06"
   },
@@ -596,5 +599,5 @@
    "last": "2026-11-04T22:47:26"
   }
  },
- "updated": "2026-11-11T15:46:08"
+ "updated": "2026-11-13T04:50:24"
 }
