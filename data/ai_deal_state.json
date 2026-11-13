@@ -1,6 +1,9 @@
 {
  "schema": 2,
  "entries": {
+  "or|free|particle-ai/particle-1:free": {
+   "last": "2026-11-13T09:51:01"
+  },
   "or|free|apodex/apodex-1.1-mini:free": {
    "last": "2026-11-13T04:50:23"
   },
@@ -599,5 +602,5 @@
    "last": "2026-11-04T22:47:26"
   }
  },
- "updated": "2026-11-13T04:50:24"
+ "updated": "2026-11-13T09:51:02"
 }
