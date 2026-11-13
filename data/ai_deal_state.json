@@ -1,6 +1,9 @@
 {
  "schema": 2,
  "entries": {
+  "or|free|inclusionai/ling-3.2-flash:free": {
+   "last": "2026-11-14T07:35:58"
+  },
   "or|free|particle-ai/particle-1:free": {
    "last": "2026-11-13T09:51:01"
   },
@@ -602,5 +605,5 @@
    "last": "2026-11-04T22:47:26"
   }
  },
- "updated": "2026-11-13T09:51:02"
+ "updated": "2026-11-14T07:36:00"
 }
