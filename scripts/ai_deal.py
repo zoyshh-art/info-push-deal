@@ -349,7 +349,7 @@ def build_text(items: list[dict]) -> str:
         "---",
         "来源：free-llm-intel（每天巡检 70 家厂商官方页）· awesome-free-llm-apis · OpenRouter",
         "只推厂商官方免费额度与政策变化，不涉及第三方转售/号池",
-        "每小时巡检 · 同一条变化只推一次",
+        "每天 19:00 巡检 · 同一条变化只推一次",
     ]
     return "\n".join(lines)
 
