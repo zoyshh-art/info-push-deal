@@ -1,6 +1,9 @@
 {
  "schema": 2,
  "entries": {
+  "intel|deepseek|2026-11-15": {
+   "last": "2026-11-15T10:41:21"
+  },
   "or|free|inclusionai/ling-3.2-flash:free": {
    "last": "2026-11-14T07:35:58"
   },
@@ -605,5 +608,5 @@
    "last": "2026-11-04T22:47:26"
   }
  },
- "updated": "2026-11-14T07:36:00"
+ "updated": "2026-11-15T10:41:23"
 }
