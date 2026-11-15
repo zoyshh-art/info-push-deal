@@ -1016,10 +1016,6 @@ def main() -> int:
     off = [n for n, on in (("打印机", PRINTER_ENABLED), ("OPPO", OPPO_ENABLED)) if not on]
     if off:
         log(f"[开关] 已停跟：{'、'.join(off)}（配置保留，改回 True 即恢复）")
-        try:
-            bucket.extend(fn())
-        except (requests.RequestException, ET.ParseError) as e:
-            log(f"源 {name} 抓取失败: {type(e).__name__} {e}")
 
     raw_total = len(deals) + len(news)   # 过滤前的原始条数：用于区分「没抓到」和「抓到但都不达标」
 
