@@ -1,6 +1,45 @@
 {
  "schema": 2,
  "entries": {
+  "intel|google_gemini|2026-11-17": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "intel|gcp_vertex_ai|2026-11-17": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "intel|morph_labs|2026-11-17": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "intel|anyscale|2026-11-17": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "intel|parallel_ai|2026-11-17": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "intel|stepfun|2026-11-17": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "intel|relace|2026-11-17": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "mnfst|provider|AxForge": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "mnfst|model|AxForge|qwen3.8-27b": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "mnfst|model|AxForge|qwen3.8-flash-next": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "mnfst|model|AxForge|glm-5.3-flash": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "mnfst|model|AxForge|mimo-v2.6-flash": {
+   "last": "2026-11-18T03:30:12"
+  },
+  "mnfst|quota|AxForge|50cdf280f8": {
+   "last": "2026-11-18T03:30:12"
+  },
   "intel|aliyun_qwen|2026-11-16": {
    "last": "2026-11-17T04:45:30"
   },
@@ -620,5 +659,5 @@
    "last": "2026-11-04T22:47:26"
   }
  },
- "updated": "2026-11-17T04:45:32"
+ "updated": "2026-11-18T03:30:15"
 }
