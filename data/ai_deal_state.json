@@ -1,6 +1,36 @@
 {
  "schema": 2,
  "entries": {
+  "intel|aliyun_qwen|2026-11-24": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "intel|moss|2026-11-24": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "intel|siliconflow|2026-11-24": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "mnfst|provider|Runcrate": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "mnfst|model|Runcrate|deepseek-ai/DeepSeek-V4.1-Flash": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "mnfst|model|Runcrate|zai-org/GLM-5.3-Flash": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "mnfst|model|Runcrate|zai-org/GLM-5.3": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "mnfst|model|Runcrate|Qwen/Qwen3.8-Flash": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "mnfst|model|Runcrate|openai/gpt-oss-120b": {
+   "last": "2026-11-24T19:03:07"
+  },
+  "mnfst|quota|Runcrate|85b57209a7": {
+   "last": "2026-11-24T19:03:07"
+  },
   "mnfst|quota|LLM7.io|3cd68002b2": {
    "last": "2026-11-23T19:03:07"
   },
@@ -689,5 +719,5 @@
    "last": "2026-11-04T22:47:26"
   }
  },
- "updated": "2026-11-23T19:03:09"
+ "updated": "2026-11-24T19:03:08"
 }
